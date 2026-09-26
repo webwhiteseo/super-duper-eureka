@@ -1,0 +1,119 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:#000;font-family:Impact,'Arial Black',sans-serif}
+canvas{display:block}
+.o{position:absolute;color:#fff;-webkit-text-stroke:12px #000;paint-order:stroke fill;letter-spacing:2px;font-weight:900}
+#h1{left:60px;top:40px;font-size:128px;white-space:nowrap;line-height:1;color:#ffcf2e;text-shadow:0 10px 0 #000,0 0 50px rgba(255,170,0,.7);transform:rotate(-4deg)}
+#h2{left:80px;top:190px;font-size:72px;white-space:nowrap;color:#fff;text-shadow:0 8px 0 #000;transform:rotate(-4deg)}
+#tag{right:60px;bottom:70px;font-size:70px;padding:10px 34px;border-radius:26px;border:9px solid #000;
+ background:linear-gradient(90deg,#ff2d6f,#ff9d00,#ffe600,#32e36b,#1ec8ff,#a24bff);transform:rotate(5deg);box-shadow:0 10px 0 #000;-webkit-text-stroke:10px #000}
+#mut{right:80px;bottom:70px;font-size:80px;color:#ff7a1a;text-shadow:0 8px 0 #000,0 0 40px #ff4d00;transform:rotate(-6deg)}
+</style>
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script>
+</head><body>
+<div class="o" id="h1">BUILD A MEGA FACTORY</div>
+<div class="o" id="h2">START WITH NOTHING…</div>
+<div class="o" id="tag">🔥 FLAME MUTATION!</div>
+<script type="module">
+import * as THREE from 'three';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
+import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+const W=1920,H=1080;
+const r=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+r.setSize(W,H);r.shadowMap.enabled=true;r.shadowMap.type=THREE.PCFSoftShadowMap;
+r.toneMapping=THREE.ACESFilmicToneMapping;r.toneMappingExposure=1.15;
+document.body.prepend(r.domElement);
+const s=new THREE.Scene();s.background=new THREE.Color(0x1a1238);s.fog=new THREE.Fog(0x1a1238,45,110);
+const cam=new THREE.PerspectiveCamera(42,W/H,.1,500);cam.position.set(2,12.5,27);cam.lookAt(0.5,4.5,-4);
+
+s.add(new THREE.HemisphereLight(0x9fb6ff,0x2a1633,.9));
+const sun=new THREE.DirectionalLight(0xffe2b8,2.2);sun.position.set(20,40,15);sun.castShadow=true;
+sun.shadow.mapSize.set(2048,2048);Object.assign(sun.shadow.camera,{left:-40,right:40,top:40,bottom:-40});s.add(sun);
+const rim=new THREE.DirectionalLight(0x8a5cff,1.5);rim.position.set(-30,15,-30);s.add(rim);
+
+const M=(c,o={})=>new THREE.MeshStandardMaterial({color:c,roughness:o.r??.55,metalness:o.m??.2,emissive:o.e??0x000000,emissiveIntensity:o.ei??1});
+const box=(w,h,d,mat,x,y,z,rad=.25)=>{const m=new THREE.Mesh(new RoundedBoxGeometry(w,h,d,3,Math.min(rad,w/2.01,h/2.01,d/2.01)),mat);m.position.set(x,y,z);m.castShadow=m.receiveShadow=true;s.add(m);return m};
+
+// baseplate with studs-like grid tiles
+const floor=new THREE.Mesh(new THREE.BoxGeometry(80,1,80),M(0x3b3f52,{r:.8}));floor.position.y=-.5;floor.receiveShadow=true;s.add(floor);
+for(let i=-40;i<=40;i+=4){const l1=box(.12,.02,80,M(0x4c5268),i,0.01,0,0.01);const l2=box(80,.02,.12,M(0x4c5268),0,0.01,i,0.01);}
+// plot border glow
+const bord=M(0x00e5ff,{e:0x00e5ff,ei:2.5});
+box(40,.3,.3,bord,0,.15,-17,.1);
+
+// conveyor line along x
+const beltM=M(0x1b1b22,{r:.4,m:.5}),railM=M(0x9aa3b5,{m:.8,r:.3}),arrowM=M(0x33ff88,{e:0x33ff88,ei:2});
+function conveyor(x0,x1,z){const L=x1-x0,cx=(x0+x1)/2;box(L,.5,3.2,railM,cx,1.1,z,.15);box(L,.55,2.6,beltM,cx,1.2,z,.1);
+ for(let x=x0+1;x<x1;x+=2.2){const a=new THREE.Mesh(new THREE.ConeGeometry(.35,.8,3),arrowM);a.rotation.z=-Math.PI/2;a.rotation.x=Math.PI/2;a.position.set(x,1.5,z);s.add(a);}
+ for(let x=x0+1;x<x1;x+=6){box(.5,1,.5,railM,x,.5,z-1.3,.1);box(.5,1,.5,railM,x,.5,z+1.3,.1);}}
+conveyor(-16,12,0);conveyor(-16,12,-8);
+
+// droppers
+function dropper(x,z,col,emi){const b=box(3.4,3,3.4,M(col,{m:.5,r:.35}),x,6.2,z,.4);
+ box(3.8,.5,3.8,M(0x2a2a33,{m:.7}),x,7.8,z,.2);
+ const f=new THREE.Mesh(new THREE.CylinderGeometry(1,.6,1.2,16),M(0x2a2a33,{m:.7}));f.position.set(x,4.2,z);s.add(f);
+ box(1.4,.5,.2,M(emi,{e:emi,ei:3}),x,6.4,z+1.72,.1);
+ [-1.4,1.4].forEach(dx=>box(.4,4,.4,M(0x2a2a33,{m:.7}),x+dx,2.6,z+1.4,.1));}
+dropper(-12,0,0x8d97a8,0xdfe9ff);dropper(-5,0,0xe6a300,0xffd84d);dropper(2,0,0x7a2fd6,0xd08cff);
+dropper(-12,-8,0xd23b1a,0xff6a00);dropper(-5,-8,0x1c9c6a,0x3dffb0);
+
+// ores
+const oreGeo=new THREE.DodecahedronGeometry(.75,0);
+const ores={iron:M(0xdde3ea,{m:.9,r:.2,e:0x445066,ei:.6}),gold:M(0xffc933,{m:1,r:.15,e:0xff9d00,ei:1.2}),
+ amethyst:M(0xc77dff,{m:.3,r:.1,e:0xa23dff,ei:2.2}),flame:M(0xff6a1a,{e:0xff4a00,ei:3.5}),emerald:M(0x44ffb0,{e:0x10d98a,ei:2})};
+const addOre=(t,x,y,z,sc=1)=>{const o=new THREE.Mesh(oreGeo,ores[t]);o.position.set(x,y,z);o.scale.setScalar(sc);o.rotation.set(Math.random()*3,Math.random()*3,0);o.castShadow=true;s.add(o);return o;};
+const seq=['iron','gold','amethyst'];
+for(let x=-14;x<11;x+=1.7){addOre(seq[Math.floor(Math.random()*3)],x,1.95,(Math.random()-.5)*1.2);}
+for(let x=-14;x<11;x+=1.9){addOre(Math.random()<.5?'flame':'emerald',x,1.95,-8+(Math.random()-.5)*1.2);}
+// falling ores
+[[-12,3.2,'iron'],[-5,2.9,'gold'],[2,3.3,'amethyst'],[-12,3,'flame'],[-5,3.4,'emerald']].forEach(([x,y,t],i)=>addOre(t,x,y,i<3?0:-8,1.1));
+
+// upgrader arch with laser
+function upgrader(x,z,c){const fm=M(0x2d2d3a,{m:.8,r:.3});box(.8,6,.8,fm,x,3,z-2);box(.8,6,.8,fm,x,3,z+2);box(1.4,1,5.2,fm,x,6.2,z,.2);
+ const lz=M(c,{e:c,ei:4});const beam=new THREE.Mesh(new THREE.BoxGeometry(.25,4.2,3.4),lz);beam.material.transparent=true;beam.material.opacity=.85;beam.position.set(x,3.7,z);s.add(beam);
+ const pl=new THREE.PointLight(c,40,12);pl.position.set(x,4,z);s.add(pl);}
+upgrader(6,0,0x00e5ff);upgrader(6,-8,0xff2d9a);
+
+// furnace
+const fx=15.5;
+box(7,7,14,M(0x7a5646,{r:.6,m:.3}),fx,3.5,-4,.5);
+box(7.6,1,14.6,M(0xffa21a,{m:.6,e:0xff6a00,ei:.8}),fx,7.3,-4,.3);
+[[0],[-8]].forEach(([z])=>{box(.4,3,3.4,M(0xff5a00,{e:0xff5a00,ei:5}),fx-3.55,2.5,z,.1);});
+const glowL=new THREE.PointLight(0xff6a00,300,30);glowL.position.set(fx-6,4,-4);s.add(glowL);
+for(let i=0;i<2;i++){const ch=new THREE.Mesh(new THREE.CylinderGeometry(1,1.2,6,20),M(0x2b2020,{m:.4}));ch.position.set(fx+1,10.5,-8+i*8);ch.castShadow=true;s.add(ch);
+ const cap=new THREE.Mesh(new THREE.TorusGeometry(1.05,.2,8,24),M(0xff7a00,{e:0xff5a00,ei:4}));cap.rotation.x=Math.PI/2;cap.position.set(fx+1,13.5,-8+i*8);s.add(cap);}
+
+// cash burst
+const cashM=M(0x3cff6a,{e:0x19c943,ei:1.4,r:.4});
+for(let i=0;i<45;i++){const b=new THREE.Mesh(new THREE.BoxGeometry(1.4,.12,.7),cashM);
+ const a=Math.random()*Math.PI*2,rr=2+Math.random()*7;b.position.set(fx-2+Math.cos(a)*rr*.6,9+Math.random()*9,-4+Math.sin(a)*rr);
+ b.rotation.set(Math.random()*3,Math.random()*3,Math.random()*3);b.castShadow=true;s.add(b);}
+const coinM=M(0xffd23a,{m:1,r:.2,e:0x8a5a00,ei:.8});
+for(let i=0;i<25;i++){const c=new THREE.Mesh(new THREE.CylinderGeometry(.55,.55,.15,24),coinM);
+ c.position.set(fx-4+Math.random()*8,8+Math.random()*10,-10+Math.random()*12);c.rotation.set(Math.random()*3,0,Math.random()*3);s.add(c);}
+
+// roblox avatar
+function avatar(x,z,ry){const g=new THREE.Group();
+ const skin=M(0xf5cd30),shirt=M(0x1e88ff),pants=M(0x2b2b3a);
+ const p=(w,h,d,m,px,py,pz)=>{const b=new THREE.Mesh(new RoundedBoxGeometry(w,h,d,3,.12),m);b.position.set(px,py,pz);b.castShadow=true;g.add(b);return b;};
+ p(1,2,1,pants,-.5,1,0);p(1,2,1,pants,.5,1,0);p(2,2,1,shirt,0,3,0);
+ const la=p(1,2,1,skin,-1.5,3,0);const ra=p(1,2,1,skin,1.5,3.9,0);ra.rotation.z=2.9;ra.position.set(1.55,4.9,0);
+ const hd=new THREE.Mesh(new THREE.CylinderGeometry(.65,.65,1.2,24),skin);hd.position.set(0,4.6,0);hd.castShadow=true;g.add(hd);
+ 
+ // face
+ const eye=M(0x111111);[-.25,.25].forEach(ex=>{const e=new THREE.Mesh(new THREE.SphereGeometry(.1,8,8),eye);e.position.set(ex,4.8,.62);g.add(e);});
+ const mouth=new THREE.Mesh(new THREE.TorusGeometry(.22,.06,8,16,Math.PI),eye);mouth.rotation.z=Math.PI;mouth.position.set(0,4.45,.63);g.add(mouth);
+ g.position.set(x,0,z);g.rotation.y=ry;g.scale.setScalar(1.45);s.add(g);}
+avatar(-10.5,6,0.45);
+
+// sparkles
+const spM=new THREE.MeshBasicMaterial({color:0xffffff});
+for(let i=0;i<60;i++){const sp=new THREE.Mesh(new THREE.OctahedronGeometry(.12+Math.random()*.15),spM);sp.position.set(-20+Math.random()*40,2+Math.random()*16,-16+Math.random()*24);s.add(sp);}
+
+const comp=new EffectComposer(r);comp.addPass(new RenderPass(s,cam));
+comp.addPass(new UnrealBloomPass(new THREE.Vector2(W,H),.55,.5,.88));comp.addPass(new OutputPass());
+comp.render();comp.render();window.DONE=true;
+</script></body></html>
