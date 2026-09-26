@@ -1,0 +1,96 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
+<style>
+html,body{margin:0;width:1920px;height:1080px;overflow:hidden;font-family:'Luckiest Guy',Impact,sans-serif}
+.t{position:absolute;left:0;right:0;text-align:center;color:#ffd21a;letter-spacing:4px;
+ -webkit-text-stroke:14px #1a0b00;paint-order:stroke fill;text-shadow:0 14px 0 #1a0b00,0 0 40px rgba(255,160,0,.8)}
+.t1{top:40px;font-size:190px;transform:rotate(-3deg)}
+.t2{top:250px;font-size:100px;white-space:nowrap;color:#fff;transform:rotate(-2deg)}
+.tag{position:absolute;right:70px;bottom:70px;font-size:96px;color:#fff;padding:18px 44px;border-radius:40px;
+ background:linear-gradient(90deg,#ff2d6f,#ff9d00,#ffe600,#32e36b,#1ec8ff,#a24bff);border:10px solid #1a0b00;
+ -webkit-text-stroke:10px #1a0b00;paint-order:stroke fill;transform:rotate(6deg);box-shadow:0 14px 0 #1a0b00}
+.cash{position:absolute;left:60px;bottom:80px;font-size:120px;color:#4dff6a;-webkit-text-stroke:12px #06300c;paint-order:stroke fill;
+ transform:rotate(-8deg);text-shadow:0 10px 0 #06300c}
+</style></head><body>
+<svg width="1920" height="1080" style="position:absolute;inset:0">
+<defs>
+ <radialGradient id="sky" cx="50%" cy="60%" r="80%"><stop offset="0" stop-color="#ffb347"/><stop offset=".45" stop-color="#ff5e62"/><stop offset="1" stop-color="#3a1c71"/></radialGradient>
+ <radialGradient id="glow"><stop offset="0" stop-color="#fff6a0" stop-opacity="1"/><stop offset="1" stop-color="#ff8a00" stop-opacity="0"/></radialGradient>
+ <linearGradient id="belt" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#555"/><stop offset="1" stop-color="#222"/></linearGradient>
+ <linearGradient id="gold" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#fff38a"/><stop offset="1" stop-color="#e69500"/></linearGradient>
+ <linearGradient id="purp" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#f0b6ff"/><stop offset="1" stop-color="#7a1fd6"/></linearGradient>
+ <linearGradient id="iron" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#e9eef5"/><stop offset="1" stop-color="#7d8794"/></linearGradient>
+</defs>
+<rect width="1920" height="1080" fill="url(#sky)"/>
+<!-- sunburst -->
+<g opacity=".18" transform="translate(1000,640)">
+ <script>/* rays drawn below */</script>
+</g>
+<g id="rays" opacity=".16" fill="#fff"></g>
+<!-- ground -->
+<polygon points="0,820 1920,760 1920,1080 0,1080" fill="#3fbf4a"/>
+<polygon points="0,820 1920,760 1920,790 0,850" fill="#2d8f36"/>
+<!-- conveyor -->
+<g transform="translate(250,700)">
+ <rect x="0" y="0" width="1150" height="70" rx="12" fill="url(#belt)" stroke="#111" stroke-width="8"/>
+ <g stroke="#888" stroke-width="6">
+  <line x1="60" y1="8" x2="40" y2="62"/><line x1="160" y1="8" x2="140" y2="62"/><line x1="260" y1="8" x2="240" y2="62"/>
+  <line x1="360" y1="8" x2="340" y2="62"/><line x1="460" y1="8" x2="440" y2="62"/><line x1="560" y1="8" x2="540" y2="62"/>
+  <line x1="660" y1="8" x2="640" y2="62"/><line x1="760" y1="8" x2="740" y2="62"/><line x1="860" y1="8" x2="840" y2="62"/>
+  <line x1="960" y1="8" x2="940" y2="62"/><line x1="1060" y1="8" x2="1040" y2="62"/></g>
+ <rect x="20" y="70" width="30" height="80" fill="#333" stroke="#111" stroke-width="6"/>
+ <rect x="560" y="70" width="30" height="80" fill="#333" stroke="#111" stroke-width="6"/>
+ <rect x="1100" y="70" width="30" height="80" fill="#333" stroke="#111" stroke-width="6"/>
+</g>
+<!-- droppers -->
+<g stroke="#111" stroke-width="8">
+ <rect x="330" y="470" width="150" height="130" rx="10" fill="#9aa4b1"/><polygon points="360,600 450,600 425,650 385,650" fill="#6b7480"/>
+ <rect x="600" y="440" width="170" height="160" rx="10" fill="#ffc21a"/><polygon points="635,600 735,600 708,655 662,655" fill="#d18a00"/>
+ <rect x="890" y="420" width="180" height="180" rx="10" fill="#b44dff"/><polygon points="925,600 1035,600 1005,660 955,660" fill="#7a1fd6"/>
+</g>
+<!-- falling ores -->
+<g stroke="#111" stroke-width="6">
+ <polygon points="405,665 425,675 420,700 395,700 388,678" fill="url(#iron)"/>
+ <polygon points="210+0,0" fill="none"/>
+ <polygon points="560,660 590,670 585,700 555,702 548,675" fill="url(#iron)"/>
+ <polygon points="685,668 712,660 730,685 712,702 684,698" fill="url(#gold)"/>
+ <polygon points="820,662 850,672 846,700 815,702 808,676" fill="url(#gold)"/>
+ <polygon points="980,660 1000,640 1022,662 1012,702 986,702" fill="url(#purp)"/>
+ <polygon points="1130,655 1152,632 1176,656 1166,702 1138,702" fill="url(#purp)"/>
+</g>
+<!-- furnace -->
+<circle cx="1480" cy="620" r="300" fill="url(#glow)"/>
+<g stroke="#111" stroke-width="10">
+ <rect x="1360" y="440" width="260" height="330" rx="18" fill="#6e3b1f"/>
+ <rect x="1330" y="400" width="320" height="60" rx="12" fill="#4a2410"/>
+ <rect x="1440" y="250" width="80" height="160" fill="#4a2410"/>
+ <rect x="1400" y="560" width="180" height="150" rx="80" fill="#ffae00"/>
+</g>
+<ellipse cx="1490" cy="650" rx="70" ry="55" fill="#fff38a"/>
+<!-- smoke -->
+<g fill="#fff" opacity=".7"><circle cx="1480" cy="220" r="40"/><circle cx="1530" cy="170" r="55"/><circle cx="1600" cy="120" r="70"/></g>
+<!-- cash stacks -->
+<g stroke="#06300c" stroke-width="7">
+ <rect x="1620" y="820" width="200" height="60" rx="8" fill="#4dcf5a"/>
+ <rect x="1600" y="770" width="200" height="60" rx="8" fill="#5be36a"/>
+ <rect x="1640" y="720" width="200" height="60" rx="8" fill="#4dcf5a"/>
+ <circle cx="1560" cy="880" r="42" fill="url(#gold)"/><circle cx="1880" cy="760" r="36" fill="url(#gold)"/>
+</g>
+<!-- sparkles -->
+<g fill="#fff">
+ <path d="M1300 330 l12 34 34 12 -34 12 -12 34 -12 -34 -34 -12 34 -12z"/>
+ <path d="M200 480 l9 26 26 9 -26 9 -9 26 -9 -26 -26 -9 26 -9z"/>
+ <path d="M1760 540 l10 30 30 10 -30 10 -10 30 -10 -30 -30 -10 30 -10z"/>
+ <path d="M1100 380 l8 22 22 8 -22 8 -8 22 -8 -22 -22 -8 22 -8z"/>
+</g>
+</svg>
+<div class="t t1">FACTORY TYCOON</div>
+<div class="t t2">BUILD • SMELT • REBIRTH</div>
+<div class="cash">$1,000,000!</div>
+<div class="tag">REBIRTH x2!</div>
+<script>
+const g=document.getElementById('rays');for(let i=0;i<24;i+=2){const a1=i*Math.PI/12,a2=(i+1)*Math.PI/12,cx=1000,cy=640,R=2000;
+const p=document.createElementNS('http://www.w3.org/2000/svg','polygon');
+p.setAttribute('points',`${cx},${cy} ${cx+R*Math.cos(a1)},${cy+R*Math.sin(a1)} ${cx+R*Math.cos(a2)},${cy+R*Math.sin(a2)}`);g.appendChild(p);}
+</script>
+</body></html>
