@@ -12,7 +12,7 @@ mats={'Grass':(.38,.53,.27),'GrassLight':(.41,.555,.285),'GrassDark':(.345,.495,
  'DrySand':(.91,.83,.64),'WetSand':(.71,.66,.51),'CaveRock':(.33,.33,.32),'RiverBed':(.55,.50,.41),'Water':(.30,.60,.70),
  'Wood':(.58,.40,.24),'WoodDark':(.36,.24,.14),'Iron':(.2,.2,.21),'LanternGlow':(1.0,.85,.5),'Bush':(.26,.45,.20),'BushLight':(.34,.53,.23),
  'TallGrass':(.46,.62,.28),'TallGrassDry':(.64,.66,.34),'FlowerRed':(.90,.28,.25),'FlowerYellow':(.98,.84,.26),'FlowerWhite':(.97,.96,.92),
- 'FlowerPurple':(.64,.44,.86),'PalmTrunk':(.60,.47,.31),'PalmLeaf':(.30,.58,.24),'Coconut':(.40,.28,.16),'Dirt':(.52,.42,.29),'Scree':(.56,.54,.50),'Stone':(.62,.61,.57),'StoneDark':(.48,.47,.44),'Gravel':(.55,.53,.49),'RoofWood':(.46,.26,.16)}
+ 'FlowerPurple':(.64,.44,.86),'PalmTrunk':(.60,.47,.31),'PalmLeaf':(.30,.58,.24),'Coconut':(.40,.28,.16),'Dirt':(.52,.42,.29),'Scree':(.56,.54,.50),'Stone':(.62,.61,.57),'StoneDark':(.48,.47,.44),'Gravel':(.55,.53,.49),'RoofWood':(.46,.26,.16),'RoofTile':(.50,.16,.12),'Banner':(.65,.09,.09),'Gold':(.92,.72,.22)}
 SUN=np.array([-.55,-.45,.7]);SUN/=np.linalg.norm(SUN)
 FOG=np.array([.80,.85,.86]);SKY_TOP=np.array([.55,.70,.86]);SKY_LOW=np.array([.83,.88,.90])
 W,H=1600,1180;font='/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
