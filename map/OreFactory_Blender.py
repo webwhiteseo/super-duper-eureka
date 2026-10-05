@@ -589,16 +589,11 @@ for i in range(N*2):
  t=2*math.pi*i/(N*2);tw.put(box,TX+(R+.6)*math.cos(t),TY+(R+.6)*math.sin(t),zt-1.2,1.6,1.4,2.4,-math.degrees(t),'CastleStoneDark')
 tw.add(*ring(TX,TY,zt,zt+1,R+1.8,R+1.8,RI,N,ROT),'CastleStoneDark')
 tw.add(*ring(TX,TY,zt+1,zt+4,R+1.8,R+1.8,R+.2,N,ROT),'CastleStone')
-for i in range(N*2):
- if i%2:continue
- t=2*math.pi*(i+.5)/(N*2);tw.put(box,TX+(R+1)*math.cos(t),TY+(R+1)*math.sin(t),zt+5.2,3.0,1.6,2.4,-math.degrees(t)+90,'CastleStone')
-# roof on pillars over the deck (players walk under it), tall cone
-for i in range(6):
- t=2*math.pi*(i+.5)/6;tw.put(box,TX+(RI-1.2)*math.cos(t),TY+(RI-1.2)*math.sin(t),zt+6,1.6,1.6,12,-math.degrees(t),'CastleStoneDark')
-tw.add(*prism(TX,TY,zt+12,zt+13.2,R+2.4,R+2.0,N,ROT),'RoofWood')
-tw.add(*cone(TX,TY,zt+13,zt+40,R+2.2,N,ROT),'RoofTile')
-tw.put(box,TX,TY,zt+43,.6,.6,7,0,'Iron')
-fz=zt+44.5;tw.add([(TX+.3,TY,fz+2.4),(TX+.3,TY,fz),(TX+3.8,TY+.8,fz+.5),(TX+7,TY,fz+1),(TX+7,TY,fz+3.2),(TX+3.8,TY+.8,fz+2.9)],[(0,1,2,5),(5,2,3,4),(5,4,3,2),(5,2,1,0)],'Banner')
+# tall cone roof sitting right on the parapet (no gap); the deck is a room under it
+tw.add(*prism(TX,TY,zt+4,zt+5,R+2.4,R+2.2,N,ROT),'RoofWood')
+tw.add(*cone(TX,TY,zt+4.9,zt+32,R+2.2,N,ROT),'RoofTile')
+tw.put(box,TX,TY,zt+35,.6,.6,7,0,'Iron')
+fz=zt+36.5;tw.add([(TX+.3,TY,fz+2.4),(TX+.3,TY,fz),(TX+3.8,TY+.8,fz+.5),(TX+7,TY,fz+1),(TX+7,TY,fz+3.2),(TX+3.8,TY+.8,fz+2.9)],[(0,1,2,5),(5,2,3,4),(5,4,3,2),(5,2,1,0)],'Banner')
 # side turret (front-left), solid
 ux,uy=TX+R*.95*math.cos(math.radians(150)),TY+R*.95*math.sin(math.radians(150))
 tw.add(*prism(ux,uy,fl+4,zt+10,4.8,4.4,8),'CastleStone')
