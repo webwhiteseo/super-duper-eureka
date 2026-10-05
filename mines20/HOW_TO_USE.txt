@@ -10,6 +10,10 @@ Mines 6-20 (folder mines20/): each folder has its own <Name>_RobloxSetup.lua
   9 Sun Pyramid            14 Ore Express (train)    19 Titan Drill
  10 Glowshroom Grove       15 Clockwork Owl          20 Astral Owl (Clockwork Owl + Astral Orrery fusion)
 
+NO BASE: mines 6-20 have no display plinth - they sit straight on the ground, so drop them onto your map.
+(Corsair Cannon keeps a thin "SeaWater" pool so the ship floats - delete that part if you have your own water.)
+Want the plinth back? Re-run the script with --base.
+
 PUT ONE IN ROBLOX STUDIO (mines 6-20)
 1. Home > Import 3D > pick <Name>_Roblox.fbx
    - Scale Unit = Stud, UNTICK "Import as single mesh", tick Anchored. Click Import.

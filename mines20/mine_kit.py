@@ -27,6 +27,7 @@ OUT = os.path.abspath(arg("--out", os.getcwd()))
 RENDER = bool(arg("--render", False))
 VIEWS = arg("--views", "hero,front,left,back")
 SAMPLES = int(arg("--samples", 64))
+WITH_BASE = bool(arg("--base", False))   # mines sit straight on the ground; pass --base to get the display plinth back
 V = lambda *a: Vector(a)
 X_AXIS = V(1, 0, 0)
 MINE_OBJECTS = []
@@ -398,7 +399,10 @@ def rock_f(name, C, scale, mat, coll, rough=0.22, subd=1, seed=None):
 
 
 def base_plinth(w, l, mat_base, mat_trim, mat_top, coll, c=1.0, h=1.8):
-    """The common mine base: chamfered slab, glowing trim, inset top. Returns the top height."""
+    """The display plinth (only with --base): chamfered slab, glowing trim, inset top. Returns the top height.
+    Without --base nothing is built, it returns 0 and finish_mine trims anything below the ground."""
+    if not WITH_BASE:
+        return 0.0
     slab("Base Slab", chamfer_rect(w, l, c), 0.0, chamfer_rect(w, l, c), h, mat_base, coll)
     slab("Base Trim", chamfer_rect(w + 0.08, l + 0.08, c + 0.03), h, chamfer_rect(w + 0.08, l + 0.08, c + 0.03), h + 0.2, mat_trim, coll)
     slab("Base Top", chamfer_rect(w - 0.4, l - 0.4, c * 0.92), h + 0.2, chamfer_rect(w - 1.1, l - 1.1, c * 0.75), h + 0.7, mat_top, coll)
@@ -434,9 +438,11 @@ def _lua_color(c):
 
 
 def write_roblox_setup(path, name, ore_key):
-    look = ",\n".join('\t%s = {"%s", %s, %g}' % (k, v[0], _lua_color(v[1]), v[2]) for k, v in sorted(RBX.items()))
+    used = {export_name(ob.data.materials[0].name) for ob in MINE_OBJECTS}
+    items = sorted((k, v) for k, v in RBX.items() if k in used)
+    look = ",\n".join('\t%s = {"%s", %s, %g}' % (k, v[0], _lua_color(v[1]), v[2]) for k, v in items)
     lights = ",\n".join('\t%s = {%s, %g, %g}' % (k, _lua_color(v[3][:3]), v[3][3], v[3][4])
-                        for k, v in sorted(RBX.items()) if v[3])
+                        for k, v in items if v[3])
     lua = f"""-- {name}: colours, Roblox materials, glow lights and a working ore dropper.
 -- 1. Import {name}_Roblox.fbx (Import 3D, Scale Unit = Stud, untick "Import as single mesh", tick Anchored).
 -- 2. Select the imported model in the Explorer.  3. View > Command Bar: paste this file, press Enter.
@@ -517,6 +523,30 @@ print(("[{name}] %d parts coloured, %d lights, dropper %s"):format(styled, lit, 
         f.write(lua)
 
 
+def clip_to_ground(z0=0.0):
+    """Cut every part flat at the ground plane (z0) and cap the cut, so the mine sits on whatever it is placed on."""
+    for ob in list(MINE_OBJECTS):
+        me = ob.data
+        if min(v.co.z for v in me.vertices) >= z0 - 1e-4:
+            continue
+        if max(v.co.z for v in me.vertices) <= z0 + 1e-3:
+            MINE_OBJECTS.remove(ob)
+            bpy.data.objects.remove(ob, do_unlink=True)
+            continue
+        bm = bmesh.new()
+        bm.from_mesh(me)
+        res = bmesh.ops.bisect_plane(bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:], dist=1e-5,
+                                     plane_co=V(0, 0, z0), plane_no=V(0, 0, 1), clear_inner=True)
+        cut = [e for e in res["geom_cut"] if isinstance(e, bmesh.types.BMEdge) and e.is_valid and e.is_boundary]
+        if cut:
+            new = bmesh.ops.holes_fill(bm, edges=cut, sides=0)["faces"]
+            for f in new:
+                f.smooth = False
+        bm.to_mesh(me)
+        bm.free()
+        me.update()
+
+
 def finish_mine(bg=(0.01, 0.012, 0.03), tint=(0.75, 0.75, 1.0), cams=None, mood_light=(0, -4, 20)):
     name = STATE["name"]
     scene = bpy.context.scene
@@ -525,6 +555,8 @@ def finish_mine(bg=(0.01, 0.012, 0.03), tint=(0.75, 0.75, 1.0), cams=None, mood_
     root_empty = bpy.data.objects.new(name, None)
     root_empty.empty_display_type = 'PLAIN_AXES'
     root.objects.link(root_empty)
+    if not WITH_BASE:
+        clip_to_ground()
     lo, hi = V(1e9, 1e9, 1e9), V(-1e9, -1e9, -1e9)
     for ob in MINE_OBJECTS:
         me = ob.data

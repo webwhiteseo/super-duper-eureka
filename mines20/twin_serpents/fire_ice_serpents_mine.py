@@ -34,22 +34,6 @@ top = base_plinth(12.5, 12.5, BASE, TRIM, ICEF, C_BASE, c=1.2)
 X_AX, Y_AX, Z_AX = V(1, 0, 0), V(0, 1, 0), V(0, 0, 1)
 rnd = random.Random(18)
 
-# ---- yin-yang: magma crust over the right half with an S-shaped border + glowing seam
-HT = (12.5 - 1.1) / 2;CH = 1.2 * 0.75
-def edge_x(y):
-    return HT - max(0.0, abs(y) - (HT - CH))
-def border_x(y):
-    return 1.6 * math.sin(math.pi * y / (2 * HT))
-YS = [-HT + 2 * HT * k / 16 for k in range(17)]
-for k in range(16):
-    y0, y1 = YS[k], YS[k + 1]
-    pts = [V(border_x(y0), y0, top), V(edge_x(y0) - 0.02, y0, top), V(edge_x(y1) - 0.02, y1, top), V(border_x(y1), y1, top)]
-    hexa(f"Magma Floor {k + 1}", pts + [p + V(0, 0, 0.08) for p in pts], MAGMA, C_TERRAIN)
-path_tube("Equinox Seam", [V(border_x(y), y, top + 0.08) for y in YS], [0.09] * len(YS), TRIM, C_TERRAIN, n=6)
-for k, (x, y) in enumerate(((-2.4, -3.2), (2.4, 3.2))):  # the two 'eyes' of the yin-yang
-    lathe(f"Yin Yang Eye {k + 1}", V(x, y, top), [(0.75, 0), (0.75, 0.12)], MAGMA if k == 0 else ICEF, C_TERRAIN, n=18)
-    lathe(f"Yin Yang Eye Glow {k + 1}", V(x, y, top + 0.12), [(0.45, 0), (0.45, 0.05)], LAVA if k == 0 else ICE, C_TERRAIN, n=18)
-
 # ---- twisted obsidian pillar with frost and fire runes
 PC = V(0, 0.6, top)
 lathe("Pillar Foot", PC, [(1.55, 0), (1.55, 0.4), (1.3, 0.55), (1.2, 0.8)], OBSID, C_PILLAR, n=8, smooth=False)

@@ -31,6 +31,11 @@ top = base_plinth(15.0, 11.5, DARKWOOD, GOLD, SEA, C_BASE, c=1.2)
 X_AX, Y_AX, Z_AX = V(1, 0, 0), V(0, 1, 0), V(0, 0, 1)
 rnd = random.Random(17)
 
+# ---- a thin pool of sea for the ship to float in (delete the SeaWater part in Roblox if you have your own water)
+if not WITH_BASE:
+    ellip("Sea Pool", V(0.2, 0, 0), 7.4, 5.3, 0.08, SEA, C_SEA, n=36, m=2, half=True)
+    top = 0.08                                           # waterline
+
 # ---- hull (bow toward +X)
 XS = [-5.2, -4.6, -3.6, -2.4, -1.2, 0.0, 1.2, 2.4, 3.4, 4.2, 4.8, 5.3, 5.7]
 def half_beam(x):

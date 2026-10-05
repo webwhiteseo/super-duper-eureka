@@ -4,12 +4,9 @@
 -- The dropper spawns ore at the glowing ore cube every DropInterval seconds (model attributes).
 local LOOK = {
 	Basalt = {"Basalt", 58, 50, 48, 0},
-	Black = {"SmoothPlastic", 16, 12, 12, 0},
 	Brass = {"Metal", 205, 150, 60, 0},
 	CharredWood = {"Wood", 60, 36, 24, 0},
-	CooledLava = {"CrackedLava", 22, 14, 12, 0},
 	EmberOre = {"Neon", 255, 160, 90, 0},
-	EmberTrim = {"Neon", 255, 96, 30, 0},
 	FireCrystal = {"Glass", 255, 150, 60, 0.1},
 	ForgeIron = {"Metal", 64, 62, 68, 0},
 	LavaGlow = {"Neon", 255, 120, 40, 0},

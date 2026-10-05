@@ -27,8 +27,6 @@ ORE = M("Starfeather Ore", (205, 225, 255), rough=0.15, glow=(170, 200, 255), gl
 top = base_plinth(11.5, 11.5, BLACK, GOLD, STARM, C_BASE, c=1.2)
 X_AX, Y_AX, Z_AX = V(1, 0, 0), V(0, 1, 0), V(0, 0, 1)
 rnd = random.Random(20)
-for i, (sx, sy) in enumerate(((1, 1), (-1, 1), (1, -1), (-1, -1))):
-    dot(f"Corner Star {i + 1}", V(sx * 4.75, sy * 4.75, top + 0.15), 0.3, NEON, C_BASE)
 
 def gear(name, C, axis, up, r, teeth, th, mat, coll, hub=None):
     tube(name, C, axis, up, r, r * 0.45, th, mat, coll, n=max(24, teeth * 2))
