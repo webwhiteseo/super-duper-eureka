@@ -1,6 +1,10 @@
-ORE FACTORY — BLENDER TERRAIN (v5)
+ORE FACTORY — BLENDER TERRAIN (v6)
 
 CHANGES IN THIS VERSION
+NEW IN v6
+- Both hills 30% taller: centre hill 47 studs, tall hill 61 studs. Ramps lengthened so they stay walkable (about 43 degrees).
+- Cliff ledge routes gain extra steps automatically (still ~5 studs each).
+
 NEW IN v5
 - Hills steeper: ramps about 40 degrees, other sides about 49 degrees (still walkable), cliffs unchanged.
 

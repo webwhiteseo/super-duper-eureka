@@ -53,9 +53,9 @@ def ss(t):t=min(1,max(0,t));return t*t*(3-2*t)
 # Most of each cliff is two tall drops (too high to jump); one gully is a staircase of ~5-stud
 # ledges that players can jump up. Other sides are steady slopes.
 # (name, centre, height, top radius, ramp dir, ramp length, side-slope length, cliff dir, gully dir, phase)
-SMALL_H=36
-HILL_DEFS=[('Centre',(0,0),SMALL_H,26,180,52,38,0,32,.4),
-           ('Tall',(0,-62),SMALL_H*1.3,18,0,66,48,180,206,2.1)]
+SMALL_H=36*1.3  # v6: both hills 30% taller (centre 46.8, tall 60.8)
+HILL_DEFS=[('Centre',(0,0),SMALL_H,26,180,60,49,0,32,.4),
+           ('Tall',(0,-62),SMALL_H*1.3,18,0,78,63,180,206,2.1)]
 SMALL_TOP=26
 # Mountains on the left and right sides: (x, y, height, spread).
 MOUNTAINS=[(592,48,78,52),(492,-214,62,46),(-420,-212,66,48),(-386,186,56,44)]
