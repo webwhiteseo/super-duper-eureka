@@ -54,8 +54,8 @@ def ss(t):t=min(1,max(0,t));return t*t*(3-2*t)
 # ledges that players can jump up. Other sides are steady slopes.
 # (name, centre, height, top radius, ramp dir, ramp length, side-slope length, cliff dir, gully dir, phase)
 SMALL_H=36
-HILL_DEFS=[('Centre',(0,0),SMALL_H,26,180,80,56,0,32,.4),
-           ('Tall',(0,-62),SMALL_H*1.3,18,0,90,72,180,206,2.1)]
+HILL_DEFS=[('Centre',(0,0),SMALL_H,26,180,52,38,0,32,.4),
+           ('Tall',(0,-62),SMALL_H*1.3,18,0,66,48,180,206,2.1)]
 SMALL_TOP=26
 # Mountains on the left and right sides: (x, y, height, spread).
 MOUNTAINS=[(592,48,78,52),(492,-214,62,46),(-420,-212,66,48),(-386,186,56,44)]
@@ -177,7 +177,7 @@ def ground_mat(c,size):
  if max(p[7] for p in c)>.3:return 'RiverBed'
  slope=(max(p[3] for p in c)-min(p[3] for p in c))/size
  if max(p[5] for p in c)>18 and slope>.75:return 'Rock'
- if max(p[8] for p in c)>3 and slope>1.1:return 'Rock'
+ if max(p[8] for p in c)>3 and slope>1.3:return 'Rock'
  a=math.atan2(y,x);da=(a-BEACH_ANGLE+math.pi)%TAU-math.pi;r=math.hypot(x,y);rb=smooth_boundary(a)
  half=BEACH_HALF*(.82+.3*min(1,max(0,(r-RINNER)/(rb-RINNER))))
  if abs(da)<half and r>RINNER+9*math.cos(da/half*math.pi):
@@ -210,7 +210,7 @@ for ci,c in enumerate(CAVES):
     if k not in idx:idx[k]=len(verts);verts.append((V[k][0],V[k][1],V[k][4]+.15))
     f.append(idx[k])
    slope=(max(q[4] for q in p)-min(q[4] for q in p))/(gx2-gx)
-   faces.append(tuple(f));mi.append('Rock' if (max(q[5] for q in p)>18 and slope>.75) or (max(q[8] for q in p)>3 and slope>1.1) else 'Grass')
+   faces.append(tuple(f));mi.append('Rock' if (max(q[5] for q in p)>18 and slope>.75) or (max(q[8] for q in p)>3 and slope>1.3) else 'Grass')
    faces.append(tuple(reversed(f)));mi.append('CaveRock')
  if faces:mesh('CaveRoof_%s'%('CentreHill' if ci==0 else 'Mountain%d'%ci),verts,faces,mi,True)
 # Continuous sculpted cliff skirt; no repeated block or ball cliff pieces.

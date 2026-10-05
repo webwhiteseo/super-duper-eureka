@@ -1,6 +1,9 @@
-ORE FACTORY — BLENDER TERRAIN (v4)
+ORE FACTORY — BLENDER TERRAIN (v5)
 
 CHANGES IN THIS VERSION
+NEW IN v5
+- Hills steeper: ramps about 40 degrees, other sides about 49 degrees (still walkable), cliffs unchanged.
+
 NEW IN v4
 - Both hills 50% taller: centre hill 36 studs, tall hill 47 studs (still 30% higher).
 - Tall hill now sits half inside the centre hill (behind it).
