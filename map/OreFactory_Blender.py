@@ -1,0 +1,295 @@
+"""Run in Blender's Scripting workspace. Builds a separate collection; preserves other objects.
+Without bpy, exports the identical mesh geometry to OBJ and renders a geometry preview.
+One Blender unit equals one Roblox stud. Save your .blend after running.
+"""
+import math, random, os
+from pathlib import Path
+TAU=math.tau
+OUT=Path(__file__).resolve().parent if '__file__' in globals() else Path.home()/'OreFactory_Blender'
+OUT.mkdir(parents=True,exist_ok=True)
+LAND=[(0,0,990,690),(-310,-100,450,440),(285,82,560,465),(-135,208,540,300),(165,-214,540,300)]
+PLOTS=[(-155,-195,-5),(155,-211,9),(355,15,69),(162,204,-8),(-165,188,7),(-359,-12,-77)]
+MATS={'Grass':(.32,.47,.22),'GrassLight':(.37,.52,.26),'Rock':(.38,.41,.36),'Sand':(.79,.70,.49),'Concrete':(.59,.60,.56),'Bark':(.28,.19,.12),'Leaf':(.19,.34,.17),'LeafLight':(.29,.43,.21),'Spawn':(.62,.65,.56)}
+MATS.update({'DrySand':(.88,.79,.60),'WetSand':(.64,.60,.44),'CaveRock':(.27,.27,.26),'RiverBed':(.47,.43,.35),'Water':(.22,.52,.62)})
+SCENE=[];random.seed(37)
+def boundary(a):
+ c,s=math.cos(a),math.sin(a);roots=[]
+ for x,y,w,d in LAND:
+  rx,ry=w/2,d/2;A=(c/rx)**2+(s/ry)**2;B=-2*(x*c/rx**2+y*s/ry**2);C=(x/rx)**2+(y/ry)**2-1
+  disc=B*B-4*A*C
+  if disc>=0:roots.append((-B+math.sqrt(disc))/(2*A))
+ return max(roots)
+def smooth_boundary(a):
+ return sum(boundary(a+q*.0075) for q in range(-4,5))/9 + 115*max(0,math.cos(a))**4
+BEACH_ANGLE=.55
+# Sand is 30% wider than the previous version and has no water.
+RINNER=335
+BEACH_HALF=0.07358036935329436*2.5*1.3
+
+def beach(x,y):
+ a=math.atan2(y,x); da=(a-BEACH_ANGLE+math.pi)%TAU-math.pi
+ if abs(da)>BEACH_HALF:return False
+ inner=RINNER+9*math.cos(da/BEACH_HALF*math.pi)
+ return math.hypot(x,y)>inner
+
+def plot_clearance(x,y):
+ out=1e9
+ for px,py,deg in PLOTS:
+  a=math.radians(deg);dx,dy=x-px,y-py
+  xx=math.cos(a)*dx-math.sin(a)*dy;yy=math.sin(a)*dx+math.cos(a)*dy
+  out=min(out,math.hypot(max(abs(xx)-77,0),max(abs(yy)-77,0)))
+ return out
+HILLS=[]
+for i in range(23):
+ a=i*TAU/23+.06*math.sin(i*2.6);r=smooth_boundary(a)-45;x,y=r*math.cos(a),r*math.sin(a)
+ if plot_clearance(x,y)>32 and not beach(x,y):HILLS.append((x,y,random.uniform(13,30),random.uniform(24,42)))
+HILLS.extend([(-48,-175,6,24),(-215,63,7,31),(215,-82,8,32)])
+def ss(t):t=min(1,max(0,t));return t*t*(3-2*t)
+# Centre hill: flat top for builds; the tall hill behind it is 30% higher. Both have walkable slopes.
+SMALL_H,SMALL_TOP,SMALL_FOOT=24,24,82
+BIG_H,BIG_C,BIG_R=SMALL_H*1.3,(0,-212),(64,92)
+# Mountains on the left and right sides: (x, y, height, spread).
+MOUNTAINS=[(592,48,78,52),(492,-214,62,46),(-420,-212,66,48),(-386,186,56,44)]
+# River runs from the front edge (+Y) into a walk-in cave in the centre hill.
+def river_x(y):return 10*math.sin((y-70)/46)*ss((y-70)/40)
+def river_half(y):return 5+4*ss((y-80)/22)
+# Walk-in caves: mouth, chamber centre, half width, chamber radius, floor height.
+CAVES=[((0,98),(0,4),12,17,0.)]
+def base_height(x,y):
+ r=math.hypot(x,y);a=math.atan2(y,x)
+ central=min(1,max(0,(r-45)/50))
+ h=sum(amp*math.exp(-((x-hx)**2+(y-hy)**2)/(2*w*w)) for hx,hy,amp,w in HILLS)
+ h+=1.5*(math.sin(x*.018)*math.cos(y*.02)+1)
+ h*=central
+ da=abs((a-BEACH_ANGLE+math.pi)%TAU-math.pi)
+ blend=max(0,1-max(0,da-BEACH_HALF)/.075)
+ if r>RINNER-18 and blend>0:
+  t=min(1,max(0,(r-RINNER)/(smooth_boundary(a)-RINNER)))
+  h=h*(1-blend)-14*(t*t*(3-2*t))*blend
+ return h
+def mountain_height(x,y):
+ h=0
+ for mx,my,amp,s in MOUNTAINS:
+  d2=(x-mx)**2+(y-my)**2;a=math.atan2(y-my,x-mx)
+  n=d2/(d2+s*s)  # noise fades out at the peak so it stays smooth
+  h+=amp*math.exp(-d2/(2*s*s))*(1+n*(.13*math.sin(a*3+mx)+.07*math.sin(a*7+my)))
+ return h
+def feature_height(x,y):
+ r=math.hypot(x,y);h=SMALL_H*(1-ss((r-SMALL_TOP)/(SMALL_FOOT-SMALL_TOP)))
+ q=math.hypot((x-BIG_C[0])/BIG_R[0],(y-BIG_C[1])/BIG_R[1]);h+=BIG_H*(1-ss((q-.2)/.8))
+ return h
+for mx,my,amp,s in MOUNTAINS:
+ d=math.hypot(mx,my);ux,uy=-mx/d,-my/d
+ mouth=(mx+ux*s*1.95,my+uy*s*1.95);floor=base_height(*mouth)
+ CAVES.append((mouth,(mx+ux*s*.15,my+uy*s*.15),8,15,floor))
+def seg_dist(x,y,a,b):
+ ax,ay=a;bx,by=b;vx,vy=bx-ax,by-ay;t=max(0,min(1,((x-ax)*vx+(y-ay)*vy)/(vx*vx+vy*vy)))
+ return math.hypot(x-ax-t*vx,y-ay-t*vy)
+def cave_mask(x,y,c):
+ a,b,hw,cr,floor=c;inside=min(seg_dist(x,y,a,b)-hw,math.hypot(x-b[0],y-b[1])-cr)
+ return 1-ss(inside/3)
+def river_profile(x,y):
+ if y<4:return max(0,1-ss((math.hypot(x,y-4)-7)/3))
+ d=abs(x-river_x(y));w=river_half(y)
+ return max(1-ss((d-w+3)/3),1-ss((math.hypot(x,y-4)-7)/3))
+def terrain(x,y):
+ """Returns carved height, uncarved height, mountain height, cave index or -1, river profile."""
+ fade=min(1,plot_clearance(x,y)/22);fade=fade*fade*(3-2*fade)
+ m=mountain_height(x,y)
+ orig=(base_height(x,y)+feature_height(x,y)+m)*fade
+ h=orig;cave=-1
+ if y>60:
+  d=abs(x-river_x(y));v=(1-ss((d-river_half(y)-2)/14))*ss((math.hypot(x,y)-70)/12)
+  h=h*(1-v)
+ for i,c in enumerate(CAVES):
+  k=cave_mask(x,y,c)
+  if k>0:
+   h=h*(1-k)+c[4]*k
+   if k>.5:cave=i
+ rp=river_profile(x,y) if y>-14 and abs(x)<60 else 0
+ if rp>0:h=min(h,-5*rp)
+ return h,orig,m,cave,rp
+def height(x,y):return terrain(x,y)[0]
+def mesh(name,verts,faces,mat,smooth=False):
+ SCENE.append(dict(name=name,v=verts,f=faces,mat=mat,smooth=smooth))
+def box(name,x,y,z,sx,sy,sz,deg,mat):
+ a=math.radians(deg);v=[]
+ for zz in [-sz/2,sz/2]:
+  for dx,dy in [(-sx/2,-sy/2),(sx/2,-sy/2),(sx/2,sy/2),(-sx/2,sy/2)]:v.append((x+math.cos(a)*dx+math.sin(a)*dy,y-math.sin(a)*dx+math.cos(a)*dy,z+zz))
+ mesh(name,v,[(0,3,2,1),(4,5,6,7),(0,1,5,4),(1,2,6,5),(2,3,7,6),(3,0,4,7)],mat)
+def ellipsoid(name,x,y,z,sx,sy,sz,mat,segments=9,rings=5):
+ v=[]
+ for j in range(rings+1):
+  p=math.pi*j/rings
+  for i in range(segments):
+   a=TAU*i/segments;v.append((x+sx*math.sin(p)*math.cos(a),y+sy*math.sin(p)*math.sin(a),z+sz*math.cos(p)))
+ f=[]
+ for j in range(rings):
+  for i in range(segments):f.append((j*segments+i,j*segments+(i+1)%segments,(j+1)*segments+(i+1)%segments,(j+1)*segments+i))
+ mesh(name,v,f,mat)
+# Ground: 4-stud grid split into 128-stud tiles (under 2,100 triangles each).
+# Edge vertices are pulled onto the coastline; hills, river and caves are carved into it.
+STEP=4;TILE=128
+xs=range(-560,700+STEP,STEP);ys=range(-400,400+STEP,STEP)
+V={}
+for gx in xs:
+ for gy in ys:
+  a=math.atan2(gy,gx);rb=smooth_boundary(a);r=math.hypot(gx,gy);out=r>rb
+  x,y=(gx*rb/r,gy*rb/r) if out else (gx,gy)
+  V[gx,gy]=(x,y,out)+terrain(x,y)
+def ground_mat(c):
+ x=sum(p[0] for p in c)/4;y=sum(p[1] for p in c)/4
+ if any(p[6]>=0 for p in c):return 'CaveRock'
+ if max(p[7] for p in c)>.3:return 'RiverBed'
+ slope=(max(p[3] for p in c)-min(p[3] for p in c))/STEP
+ if max(p[5] for p in c)>18 and slope>.75:return 'Rock'
+ a=math.atan2(y,x);da=(a-BEACH_ANGLE+math.pi)%TAU-math.pi;r=math.hypot(x,y);rb=smooth_boundary(a)
+ half=BEACH_HALF*(.82+.3*min(1,max(0,(r-RINNER)/(rb-RINNER))))
+ if abs(da)<half and r>RINNER+9*math.cos(da/half*math.pi):
+  t=(r-RINNER)/(rb-RINNER);return 'WetSand' if t>.93 else 'DrySand' if t>.68 else 'Sand'
+ return 'Grass'
+tiles={}
+for gx in xs[:-1]:
+ for gy in ys[:-1]:
+  ks=[(gx,gy),(gx+STEP,gy),(gx+STEP,gy+STEP),(gx,gy+STEP)];c=[V[k] for k in ks]
+  if all(p[2] for p in c):continue
+  tiles.setdefault((gx//TILE,gy//TILE),[]).append((ks,ground_mat(c)))
+for (tx,ty),cells in sorted(tiles.items()):
+ idx={};verts=[];faces=[];mi=[]
+ for ks,mat in cells:
+  f=[]
+  for k in ks:
+   if k not in idx:idx[k]=len(verts);verts.append((V[k][0],V[k][1],V[k][3]))
+   f.append(idx[k])
+  faces.append(tuple(f));mi.append(mat)
+ mesh('Ground_%+d_%+d'%(tx,ty),verts,faces,mi,True)
+# Cave roofs: the original hill/mountain surface over each tunnel, double sided (rock ceiling inside).
+for ci,c in enumerate(CAVES):
+ idx={};verts=[];faces=[];mi=[]
+ for gx in xs[:-1]:
+  for gy in ys[:-1]:
+   ks=[(gx,gy),(gx+STEP,gy),(gx+STEP,gy+STEP),(gx,gy+STEP)];p=[V[k] for k in ks]
+   if any(q[2] for q in p) or not any(cave_mask(q[0],q[1],c)>.01 for q in p):continue
+   if min(q[4] for q in p)-c[4]<13:continue
+   f=[]
+   for k in ks:
+    if k not in idx:idx[k]=len(verts);verts.append((V[k][0],V[k][1],V[k][4]+.15))
+    f.append(idx[k])
+   slope=(max(q[4] for q in p)-min(q[4] for q in p))/STEP
+   faces.append(tuple(f));mi.append('Rock' if max(q[5] for q in p)>18 and slope>.75 else 'Grass')
+   faces.append(tuple(reversed(f)));mi.append('CaveRock')
+ if faces:mesh('CaveRoof_%s'%('CentreHill' if ci==0 else 'Mountain%d'%ci),verts,faces,mi,True)
+# Continuous sculpted cliff skirt; no repeated block or ball cliff pieces.
+N=512
+for sector in range(8):
+ verts=[];faces=[]
+ for j in range(5):
+  t=j/4
+  for i in range(65):
+   a=TAU*(sector*64+i)/N;r=smooth_boundary(a)
+   offset=math.sin(t*math.pi)*5+math.sin(a*17+t*2)*3*t
+   x,y=(r+offset)*math.cos(a),(r+offset)*math.sin(a)
+   top=height(r*math.cos(a),r*math.sin(a));z=top*(1-t)+(-43-3*math.sin(a*5))*t
+   verts.append((x,y,z))
+ for j in range(4):
+  for i in range(64):
+   k=j*65+i;faces.append((k,k+65,k+66,k+1))
+ mesh('Cliff_%02d'%sector,verts,faces,'Rock',True)
+# River water surface: a separate mesh, easy to delete if you use Roblox terrain water instead.
+wv=[];wf=[];ylist=[4+i*4 for i in range(120)]
+ylist=[y for y in ylist if y<smooth_boundary(math.atan2(y,river_x(y)))-1]
+for y in ylist:
+ w=river_half(y)+1
+ for s in (-1,1):wv.append((river_x(y)+s*w,y,-1.6))
+for i in range(len(ylist)-1):wf.append((2*i,2*i+1,2*i+3,2*i+2))
+mesh('RiverWater',wv,wf,'Water',True)
+pv=[(0,4,-1.6)]+[(0+10*math.cos(TAU*i/24),4+10*math.sin(TAU*i/24),-1.6) for i in range(24)]
+mesh('RiverPool',pv,[(0,i+1,(i+1)%24+1) for i in range(24)],'Water',True)
+for i,(x,y,deg) in enumerate(PLOTS):box('Plot_%02d'%(i+1),x,y,1,150,150,2,deg,'Concrete')
+box('CentralSpawn',0,0,SMALL_H+.4,16,16,.8,0,'Spawn')
+def feature_clear(x,y,radius):
+ if math.hypot(x,y)<SMALL_FOOT+radius+6:return False
+ if math.hypot((x-BIG_C[0])/BIG_R[0],(y-BIG_C[1])/BIG_R[1])<1.15:return False
+ if y>30 and abs(x-river_x(y))<river_half(y)+radius+16:return False
+ for a,b,hw,cr,floor in CAVES:
+  if seg_dist(x,y,a,b)<hw+radius+10 or math.hypot(x-b[0],y-b[1])<cr+radius+10:return False
+ return True
+for i in range(112):
+ a=random.uniform(0,TAU);r=smooth_boundary(a)-random.uniform(24,73);x,y=r*math.cos(a),r*math.sin(a)
+ if plot_clearance(x,y)<25 or abs(a-BEACH_ANGLE)<BEACH_HALF+.12 or not feature_clear(x,y,8):continue
+ z=height(x,y);h=random.uniform(15,23)
+ box('Tree_%03d_Trunk'%i,x,y,z+h/2,3,3,h,random.uniform(0,90),'Bark')
+ ellipsoid('Tree_%03d_Crown'%i,x,y,z+h,random.uniform(11,16),random.uniform(10,15),random.uniform(9,14),random.choice(['Leaf','LeafLight']))
+ for k in range(2):ellipsoid('Tree_%03d_Branch_%d'%(i,k),x+random.uniform(-7,7),y+random.uniform(-7,7),z+h-3,8,9,7,'Leaf',7,4)
+
+# A few small groves and boulders in the shared grassy areas.
+# Full decoration footprint stays off the sand, plots, hills, river and caves.
+def decoration_clear(x,y,radius):
+ if plot_clearance(x,y)<radius+9 or not feature_clear(x,y,radius):return False
+ if abs((math.atan2(y,x)-BEACH_ANGLE+math.pi)%TAU-math.pi)<BEACH_HALF+.12 and math.hypot(x,y)>RINNER-35:return False
+ if mountain_height(x,y)>12:return False
+ for k in range(12):
+  a=k*TAU/12
+  if beach(x+radius*math.cos(a),y+radius*math.sin(a)):return False
+ return not beach(x,y)
+placed=[]
+for i in range(24):
+ for attempt in range(300):
+  a=random.uniform(0,TAU);r=random.uniform(95,340);x,y=r*math.cos(a),r*math.sin(a)
+  if decoration_clear(x,y,19) and all(math.hypot(x-px,y-py)>37 for px,py in placed):break
+ else:continue
+ placed.append((x,y));z=height(x,y);h=random.uniform(13,18)
+ box('InteriorTree_%02d_Trunk'%i,x,y,z+h/2,2.8,2.8,h,20,'Bark')
+ ellipsoid('InteriorTree_%02d_Crown'%i,x,y,z+h,11,11,10,'LeafLight')
+ ellipsoid('InteriorTree_%02d_Branch'%i,x+5,y-3,z+h-2,8,8,7,'Leaf')
+for i in range(30):
+ for attempt in range(300):
+  a=random.uniform(0,TAU);r=random.uniform(95,350);x,y=r*math.cos(a),r*math.sin(a)
+  if decoration_clear(x,y,12):break
+ else:continue
+ z=height(x,y);w=random.uniform(5,10)
+ ellipsoid('InteriorRock_%02d'%i,x,y,z+2,w,w*.7,random.uniform(3,6),'Rock',10,6)
+
+try:import bpy
+except ImportError:bpy=None
+if bpy:
+ from mathutils import Vector
+ col=bpy.data.collections.new('OreFactory_SmoothTerrain');bpy.context.scene.collection.children.link(col)
+ mats={}
+ for name,color in MATS.items():
+  m=bpy.data.materials.new('OF_'+name);m.diffuse_color=(*color,1);m.use_nodes=True
+  m.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value=(*color,1)
+  m.node_tree.nodes['Principled BSDF'].inputs['Roughness'].default_value=.85;mats[name]=m
+ for ob in SCENE:
+  data=bpy.data.meshes.new(ob['name']);data.from_pydata(ob['v'],[],ob['f']);data.update()
+  obj=bpy.data.objects.new(ob['name'],data);col.objects.link(obj)
+  names=list(dict.fromkeys(ob['mat'])) if isinstance(ob['mat'],list) else [ob['mat']]
+  for n in names:data.materials.append(mats[n])
+  for i,poly in enumerate(data.polygons):
+   poly.use_smooth=ob['smooth'];poly.material_index=names.index(ob['mat'][i]) if isinstance(ob['mat'],list) else 0
+ # Dedicated camera and lighting; existing objects are preserved.
+ scene=bpy.context.scene;camdata=bpy.data.cameras.new('OF_Overview');cam=bpy.data.objects.new('OF_Overview',camdata);col.objects.link(cam)
+ cam.location=(1040,1180,1150);target=Vector((20,0,0));cam.rotation_euler=(target-cam.location).to_track_quat('-Z','Y').to_euler();camdata.type='ORTHO';camdata.ortho_scale=1400;scene.camera=cam
+ data=bpy.data.lights.new('OF_Sun','SUN');sun=bpy.data.objects.new('OF_Sun',data);col.objects.link(sun);sun.rotation_euler=(.5,-.4,-.6);data.energy=2.5;data.angle=.15
+ scene.world=scene.world or bpy.data.worlds.new('OF_World');scene.world.color=(.55,.62,.7)
+ scene.render.engine='CYCLES';scene.cycles.samples=32;scene.render.resolution_x=1600;scene.render.resolution_y=1200;scene.render.resolution_percentage=100
+ scene.render.filepath=str(OUT/'OreFactory_BlenderRender.png')
+ print('Ore Factory scene created. Save As a .blend, then F12 to render. Existing scene objects are preserved.')
+else:
+ # OBJ/MTL are generated from the same scene data used above, not approximated concept art.
+ with open(OUT/'OreFactory_SmoothTerrain.mtl','w') as f:
+  for n,c in MATS.items():f.write('newmtl '+n+'\nKd '+' '.join(map(str,c))+'\nKa 0.1 0.1 0.1\nd 1\n\n')
+ with open(OUT/'OreFactory_SmoothTerrain.obj','w') as f:
+  f.write('mtllib OreFactory_SmoothTerrain.mtl\n');offset=1
+  for ob in SCENE:
+   f.write('o '+ob['name']+'\n')
+   for v in ob['v']:f.write('v %.5f %.5f %.5f\n'%tuple(v))
+   current=None
+   for i,face in enumerate(ob['f']):
+    mat=ob['mat'][i] if isinstance(ob['mat'],list) else ob['mat']
+    if mat!=current:f.write('usemtl '+mat+'\n');current=mat
+    f.write('f '+' '.join(str(q+offset) for q in face)+'\n')
+   offset+=len(ob['v'])
+ print('Exported',len(SCENE),'objects')
+ import json
+ (OUT/'mesh_scene.json').write_text(json.dumps(SCENE))
