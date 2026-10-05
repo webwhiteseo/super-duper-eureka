@@ -7,14 +7,16 @@ from pathlib import Path
 TAU=math.tau
 OUT=Path(__file__).resolve().parent if '__file__' in globals() else Path.home()/'OreFactory_Blender'
 OUT.mkdir(parents=True,exist_ok=True)
-LAND=[(0,0,990,690),(-310,-100,450,440),(285,82,560,465),(-135,208,540,300),(165,-214,540,300)]
-PLOTS=[(-155,-195,-5),(155,-211,9),(355,15,69),(162,204,-8),(-165,188,7),(-359,-12,-77)]
+# v11: the hills are 2-2.5x bigger, so the whole layout (island, plots, mountains) is 1.75x wider.
+LS=1.75
+LAND=[(x*LS,y*LS,w*LS,d*LS) for x,y,w,d in [(0,0,990,690),(-310,-100,450,440),(285,82,560,465),(-135,208,540,300),(165,-214,540,300)]]
+PLOTS=[(x*LS,y*LS,deg) for x,y,deg in [(-155,-195,-5),(155,-211,9),(355,15,69),(162,204,-8),(-165,188,7),(-359,-12,-77)]]
 MATS={'Grass':(.32,.47,.22),'GrassLight':(.35,.50,.24),'Rock':(.38,.41,.36),'Sand':(.79,.70,.49),'Concrete':(.59,.60,.56),'Bark':(.28,.19,.12),'Leaf':(.19,.34,.17),'LeafLight':(.29,.43,.21),'Spawn':(.62,.65,.56)}
 MATS.update({'DrySand':(.88,.79,.60),'WetSand':(.64,.60,.44),'CaveRock':(.27,.27,.26),'RiverBed':(.47,.43,.35),'Water':(.22,.52,.62)})
 MATS.update({'Wood':(.50,.34,.20),'WoodDark':(.30,.20,.12),'Iron':(.16,.16,.17),'LanternGlow':(1.0,.78,.42),'Bush':(.22,.40,.17),'BushLight':(.30,.48,.20),
  'TallGrass':(.40,.56,.24),'TallGrassDry':(.58,.60,.30),'FlowerRed':(.86,.24,.22),'FlowerYellow':(.96,.80,.22),'FlowerWhite':(.94,.93,.88),'FlowerPurple':(.58,.38,.80),
  'PalmTrunk':(.55,.42,.27),'PalmLeaf':(.25,.52,.20),'Coconut':(.35,.24,.13),
- 'GrassDark':(.29,.44,.20),'Stone':(.56,.55,.51),'StoneDark':(.43,.42,.39),'Gravel':(.48,.46,.42),'RoofWood':(.40,.22,.14),'RoofTile':(.42,.13,.10),'Banner':(.55,.07,.07),'CastleStone':(.16,.155,.15),'CastleStoneDark':(.10,.096,.093),'Gold':(.85,.64,.18),'Dirt':(.45,.36,.24),'Scree':(.50,.48,.44),'RockDark':(.30,.31,.29)})
+ 'GrassDark':(.29,.44,.20),'Stone':(.56,.55,.51),'StoneDark':(.43,.42,.39),'Gravel':(.48,.46,.42),'RoofWood':(.40,.22,.14),'RoofTile':(.42,.13,.10),'Banner':(.55,.07,.07),'CastleStone':(.16,.155,.15),'CastleStoneDark':(.10,.096,.093),'Gold':(.85,.64,.18),'Dirt':(.45,.36,.24),'Scree':(.50,.48,.44),'RockDark':(.30,.31,.29),'Foam':(.88,.93,.95)})
 SCENE=[];random.seed(37)
 def boundary(a):
  c,s=math.cos(a),math.sin(a);roots=[]
@@ -24,7 +26,7 @@ def boundary(a):
   if disc>=0:roots.append((-B+math.sqrt(disc))/(2*A))
  return max(roots)
 def smooth_boundary(a):
- return sum(boundary(a+q*.0075) for q in range(-4,5))/9 + 115*max(0,math.cos(a))**4 + EXTEND
+ return sum(boundary(a+q*.0075) for q in range(-4,5))/9 + 115*LS*max(0,math.cos(a))**4 + EXTEND
 # The island is extended outward and every edge slopes down to beach level, like the beach does.
 EXTEND,EDGE_LOW=80,-14.
 def edge_fade(x,y):
@@ -32,7 +34,7 @@ def edge_fade(x,y):
  return ss((math.hypot(x,y)-(smooth_boundary(a)-w))/w)
 BEACH_ANGLE=.55
 # Sand is 30% wider than the previous version and has no water.
-RINNER=335+EXTEND
+RINNER=335*LS+EXTEND
 BEACH_HALF=0.07358036935329436*2.5*1.3
 
 def beach(x,y):
@@ -52,24 +54,28 @@ HILLS=[]
 for i in range(23):
  a=i*TAU/23+.06*math.sin(i*2.6);r=smooth_boundary(a)-45;x,y=r*math.cos(a),r*math.sin(a)
  if plot_clearance(x,y)>32 and not beach(x,y):HILLS.append((x,y,random.uniform(13,30),random.uniform(24,42)))
-HILLS.extend([(-48,-175,6,24),(-215,63,7,31),(215,-82,8,32)])
+HILLS.extend([(-215*LS,63*LS,7,31),(215*LS,-82*LS,8,32)])
 def ss(t):t=min(1,max(0,t));return t*t*(3-2*t)
 # Twin hills. The tall hill (30% higher) sits half inside the centre hill, behind it.
 # Each hill: flat top, a long walkable ramp on one side, an uneven rock cliff on the other.
 # Most of each cliff is two tall drops (too high to jump); one gully is a staircase of ~5-stud
 # ledges that players can jump up. Other sides are steady slopes.
 # (name, centre, height, top radius, ramp dir, ramp length, side-slope length, cliff dir, gully dir, phase)
-SMALL_H=36*1.3  # v6: both hills 30% taller (centre 46.8, tall 60.8)
-HILL_DEFS=[('Centre',(0,0),SMALL_H,26,180,76,64,0,32,.4),
-           ('Tall',(0,-62),SMALL_H*1.3,26,0,98,80,180,206,2.1)]
-SMALL_TOP=26
+# v11: centre hill 2.5x bigger (117 studs high), tall (castle) hill 2x bigger (122 high).
+CS,TS=2.5,2.0
+SMALL_H=36*1.3*CS
+HILL_DEFS=[('Centre',(0,0),SMALL_H,26*CS,180,76*CS,64*CS,0,32,.4),
+           ('Tall',(0,-140),36*1.3*1.3*TS,26*TS,0,98*TS,80*TS,180,206,2.1)]
+SMALL_TOP=26*CS
 # Mountains on the left and right sides: (x, y, height, spread).
-MOUNTAINS=[(592,48,78,52),(492,-214,62,46),(-420,-212,66,48),(-386,186,56,44)]
+MOUNTAINS=[(x*LS,y*LS,h,s*1.3) for x,y,h,s in [(592,48,78,52),(492,-214,62,46),(-420,-212,66,48),(-386,186,56,44)]]
 # River runs from the front edge (+Y) into a walk-in cave in the centre hill.
-def river_x(y):return 10*math.sin((y-70)/46)*ss((y-70)/40)
-def river_half(y):return 5+4*ss((y-80)/22)
+CH_Y,MOUTH_Y=152,240        # centre cave: chamber under the front slope, mouth at the hill foot
+VALLEY_Y0=CH_Y+.7*(MOUTH_Y-CH_Y)
+def river_x(y):return 10*math.sin((y-VALLEY_Y0)/46)*ss((y-VALLEY_Y0)/40)
+def river_half(y):return 5+4*ss((y-VALLEY_Y0-10)/22)
 # Walk-in caves: mouth, chamber centre, half width, chamber radius, floor height.
-CAVES=[((0,98),(0,4),12,17,0.)]
+CAVES=[((0,MOUTH_Y),(0,CH_Y),12,17,0.)]
 def base_height(x,y):
  r=math.hypot(x,y);a=math.atan2(y,x)
  central=min(1,max(0,(r-45)/50))
@@ -146,8 +152,8 @@ def hill_info(x,y):
   if h>best[0] or (zone and not best[1]):best=(max(h,best[0]),zone if h>=best[0] else best[1])
  return best
 # Dirt path between the two flat tops: graded walkway, cut and filled into the slopes.
-PATH_A,PATH_B,PATH_W=(0,-16),(0,-52),4.5
-TX,TY=0,-70  # summit castle keep
+PATH_A,PATH_B,PATH_W=(0,-58),(0,-96),4.5
+TX,TY=0,-150  # summit castle keep
 def path_info(x,y):
  """Returns (blend 0..1, path height) for the summit path."""
  ay,by=PATH_A[1],PATH_B[1];s=(ay-y)/(ay-by)
@@ -179,9 +185,10 @@ def cave_mask(x,y,c):
  a,b,hw,cr,floor=c;inside=min(seg_dist(x,y,a,b)-hw,math.hypot(x-b[0],y-b[1])-cr)
  return 1-ss(inside/3)
 def river_profile(x,y):
- if y<4:return max(0,1-ss((math.hypot(x,y-4)-7)/3))
+ pool=max(0,1-ss((math.hypot(x,y-CH_Y)-7)/3))
+ if y<CH_Y:return pool
  d=abs(x-river_x(y));w=river_half(y)
- return max(1-ss((d-w+3)/3),1-ss((math.hypot(x,y-4)-7)/3))
+ return max(1-ss((d-w+3)/3),pool)
 def terrain(x,y):
  """Returns carved height, uncarved height, mountain height, cave index or -1, river profile, hill height, hill zone, grass tint."""
  fade=min(1,plot_clearance(x,y)/22);fade=fade*fade*(3-2*fade)
@@ -189,16 +196,17 @@ def terrain(x,y):
  orig=(base_height(x,y)+hf+m)*fade
  e=edge_fade(x,y);orig=orig*(1-e)+EDGE_LOW*e
  h=orig;cave=-1
- if y>60:
-  d=abs(x-river_x(y));v=(1-ss((d-river_half(y)-2)/14))*ss((math.hypot(x,y)-70)/12)
-  h=h*(1-v)
+ lvl=EDGE_LOW*e  # ground level the river valley sits at (drops near the island edge)
+ if y>VALLEY_Y0-10:
+  d=abs(x-river_x(y));v=(1-ss((d-river_half(y)-2)/14))*ss((y-VALLEY_Y0)/12)
+  h=h*(1-v)+lvl*v
  for i,c in enumerate(CAVES):
   k=cave_mask(x,y,c)
   if k>0:
    h=h*(1-k)+c[4]*k
    if k>.5:cave=i
- rp=river_profile(x,y) if y>-14 and abs(x)<60 else 0
- if rp>0:h=min(h,-5*rp)
+ rp=river_profile(x,y) if y>CH_Y-18 and abs(x)<60 else 0
+ if rp>0:h=min(h,lvl-5*rp)
  return h,orig,m,cave,rp,hf*fade,zone if fade>.5 else 0,fbm(x/70,y/70,3,5)
 def height(x,y):return terrain(x,y)[0]
 def mesh(name,verts,faces,mat,smooth=False):
@@ -222,8 +230,8 @@ def ellipsoid(name,x,y,z,sx,sy,sz,mat,segments=9,rings=5):
 # split into 128-stud tiles (under 8,200 triangles each).
 # Edge vertices are pulled onto the coastline; hills, river and caves are carved into it.
 TILE=128
-xs=list(range(-660,-110,4))+list(range(-110,130,2))+list(range(130,804,4))
-ys=list(range(-480,-170,4))+list(range(-170,110,2))+list(range(110,484,4))
+xs=list(range(-1110,-300,6))+list(range(-300,300,3))+list(range(300,1320,6))
+ys=list(range(-780,-390,6))+list(range(-390,300,3))+list(range(300,780,6))
 CELLS=[(xs[i],xs[i+1],ys[j],ys[j+1]) for i in range(len(xs)-1) for j in range(len(ys)-1)]
 V={}
 for gx in xs:
@@ -243,8 +251,8 @@ def ground_mat(c,size):
   if 3 in zones and slope>.9:return 'RockDark' if int((hmid+4*tint)/5)%2 else 'Rock'  # strata bands
   if 4 in zones:return 'Scree'
   if zones.count(5)>=2:return 'Gravel'
-  if slope>1.6:return 'Rock'
-  if slope>1.35 and tint>.25:return 'Dirt'
+  if slope>1.9:return 'Rock'
+  if slope>1.6 and tint>.25:return 'Dirt'
  a=math.atan2(y,x);da=(a-BEACH_ANGLE+math.pi)%TAU-math.pi;r=math.hypot(x,y);rb=smooth_boundary(a)
  half=BEACH_HALF*(.82+.3*min(1,max(0,(r-RINNER)/(rb-RINNER))))
  if abs(da)<half and r>RINNER+9*math.cos(da/half*math.pi):
@@ -297,24 +305,35 @@ for sector in range(8):
    k=j*65+i;faces.append((k,k+65,k+66,k+1))
  mesh('Cliff_%02d'%sector,verts,faces,'Rock',True)
 # River water surface: a separate mesh, easy to delete if you use Roblox terrain water instead.
-wv=[];wf=[];ylist=[4+i*4 for i in range(120)]
-ylist=[y for y in ylist if y<smooth_boundary(math.atan2(y,river_x(y)))-1 and height(river_x(y)+river_half(y)+4,y)>-1]
+wv=[];wf=[];ylist=[CH_Y+i*4 for i in range(300)]
+ylist=[y for y in ylist if math.hypot(river_x(y),y)<smooth_boundary(math.atan2(y,river_x(y)))-1]
+def water_z(y):return EDGE_LOW*edge_fade(river_x(y),y)-1.6
 for y in ylist:
  w=river_half(y)+1
- for s in (-1,1):wv.append((river_x(y)+s*w,y,-1.6))
+ for s in (-1,1):wv.append((river_x(y)+s*w,y,water_z(y)))
 for i in range(len(ylist)-1):wf.append((2*i,2*i+1,2*i+3,2*i+2))
 mesh('RiverWater',wv,wf,'Water',True)
-pv=[(0,4,-1.6)]+[(0+10*math.cos(TAU*i/24),4+10*math.sin(TAU*i/24),-1.6) for i in range(24)]
+pv=[(0,CH_Y,-1.6)]+[(0+10*math.cos(TAU*i/24),CH_Y+10*math.sin(TAU*i/24),-1.6) for i in range(24)]
 mesh('RiverPool',pv,[(0,i+1,(i+1)%24+1) for i in range(24)],'Water',True)
+# Waterfall: the river pours over the island edge and falls past the rock skirt, out of the map.
+yb=ylist[-1];xb=river_x(yb);zt=water_z(yb);wb=river_half(yb)+1.5;fv=[];ff=[];ROWS=12
+for k in range(ROWS+1):
+ t=k/ROWS;yy=yb+1+11*t**.6;zz=zt-75*t;ww=wb*(1+.35*t)
+ fv+=[(xb-ww,yy,zz),(xb+ww,yy,zz)]
+for k in range(ROWS):
+ q=(2*k,2*k+1,2*k+3,2*k+2);ff+=[q,q[::-1]]  # double-sided
+mesh('Waterfall',fv,ff,['Water']*len(ff),True)
+lip=[(xb-wb-.5,yb-.5,zt+.15),(xb+wb+.5,yb-.5,zt+.15),(xb+wb+.5,yb+2.2,zt-1.6),(xb-wb-.5,yb+2.2,zt-1.6)]
+mesh('WaterfallFoam',lip,[(0,1,2,3),(3,2,1,0)],'Foam',True)
 for i,(x,y,deg) in enumerate(PLOTS):box('Plot_%02d'%(i+1),x,y,1,150,150,2,deg,'Concrete')
 box('CentralSpawn',0,0,SMALL_H+.4,16,16,.8,0,'Spawn')
 def feature_clear(x,y,radius):
  if on_hill(x,y,radius+6):return False
- if y>30 and abs(x-river_x(y))<river_half(y)+radius+16:return False
+ if y>CH_Y-20 and abs(x-river_x(y))<river_half(y)+radius+16:return False
  for a,b,hw,cr,floor in CAVES:
   if seg_dist(x,y,a,b)<hw+radius+10 or math.hypot(x-b[0],y-b[1])<cr+radius+10:return False
  return True
-for i in range(112):
+for i in range(190):
  a=random.uniform(0,TAU);r=smooth_boundary(a)-random.uniform(24,73);x,y=r*math.cos(a),r*math.sin(a)
  if plot_clearance(x,y)<25 or abs(a-BEACH_ANGLE)<BEACH_HALF+.12 or not feature_clear(x,y,8):continue
  z=height(x,y);h=random.uniform(15,23)
@@ -333,18 +352,18 @@ def decoration_clear(x,y,radius):
   if beach(x+radius*math.cos(a),y+radius*math.sin(a)):return False
  return not beach(x,y)
 placed=[]
-for i in range(24):
+for i in range(48):
  for attempt in range(300):
-  a=random.uniform(0,TAU);r=random.uniform(95,340);x,y=r*math.cos(a),r*math.sin(a)
+  a=random.uniform(0,TAU);r=random.uniform(95*LS,340*LS);x,y=r*math.cos(a),r*math.sin(a)
   if decoration_clear(x,y,19) and all(math.hypot(x-px,y-py)>37 for px,py in placed):break
  else:continue
  placed.append((x,y));z=height(x,y);h=random.uniform(13,18)
  box('InteriorTree_%02d_Trunk'%i,x,y,z+h/2,2.8,2.8,h,20,'Bark')
  ellipsoid('InteriorTree_%02d_Crown'%i,x,y,z+h,11,11,10,'LeafLight')
  ellipsoid('InteriorTree_%02d_Branch'%i,x+5,y-3,z+h-2,8,8,7,'Leaf')
-for i in range(30):
+for i in range(60):
  for attempt in range(300):
-  a=random.uniform(0,TAU);r=random.uniform(95,350);x,y=r*math.cos(a),r*math.sin(a)
+  a=random.uniform(0,TAU);r=random.uniform(95*LS,350*LS);x,y=r*math.cos(a),r*math.sin(a)
   if decoration_clear(x,y,12):break
  else:continue
  z=height(x,y);w=random.uniform(5,10)
@@ -370,7 +389,7 @@ def lantern(name,x,y,z,h=5):
  box(name+'_Glow',x,y,z+h+.75,1.4,1.4,1.6,0,'LanternGlow')
 
 # ---------- Wooden bridge over the river, between plots 4 and 5 ----------
-BRIDGE_Y=196;BRIDGE_X=river_x(BRIDGE_Y);SPAN,PLANKS,DECK_W=34,17,10
+BRIDGE_Y=196*LS;BRIDGE_X=river_x(BRIDGE_Y);SPAN,PLANKS,DECK_W=34,17,10
 bridge=Batch('WoodenBridge')
 deck=[]
 for i in range(PLANKS):
@@ -387,9 +406,30 @@ for side in (-1,1):
 bridge.emit()
 for side in (-1,1):lantern('Lantern_Bridge_%s'%('W' if side<0 else 'E'),BRIDGE_X+side*(SPAN/2+2.5),BRIDGE_Y+DECK_W/2+1.5,height(BRIDGE_X+side*(SPAN/2+2.5),BRIDGE_Y+DECK_W/2+1.5))
 
+# ---------- Rock arch at every cave mouth: hides the roof edge and frames the way in ----------
+for ci,(a,b,hw,cr,floor) in enumerate(CAVES):
+ ux,uy=b[0]-a[0],b[1]-a[1];L=math.hypot(ux,uy);ux,uy=ux/L,uy/L;px,py=-uy,ux
+ s0=next((k for k in range(int(L)) if terrain(a[0]+ux*k,a[1]+uy*k)[1]-floor>=13),None)
+ if s0 is None:continue
+ cx,cy=a[0]+ux*(s0-1.2),a[1]+uy*(s0-1.2);top=terrain(a[0]+ux*(s0+3),a[1]+uy*(s0+3))[1]
+ arch=Batch('CavePortal_%s'%('CentreHill' if ci==0 else 'Mountain%d'%ci));rr=random.Random(700+ci)
+ for side in (-1,1):                                   # pillars of stacked boulders
+  z=floor+1.4
+  while z<top+1:
+   w=rr.uniform(2.6,3.4);x,y=cx+px*side*(hw+.6+rr.uniform(-.3,.3)),cy+py*side*(hw+.6+rr.uniform(-.3,.3))
+   arch.put(ellipsoid,x,y,z,w,w*.9,w*.75,rr.choice(['Rock','RockDark']),8,5);z+=w*1.25
+ k=-(hw+2.2)
+ while k<=hw+2.2:                                      # lintel across the opening, over the roof edge
+  w=rr.uniform(2.2,2.9);x,y=cx+px*k,cy+py*k
+  arch.put(ellipsoid,x,y,floor+11.8+rr.uniform(-.3,.4),w,w*1.1,w*.8,rr.choice(['Rock','RockDark']),8,5)
+  arch.put(ellipsoid,x+ux*.8,y+uy*.8,floor+14.6+rr.uniform(-.3,.5),w*.9,w,w*.7,'RockDark',8,5)
+  k+=w*1.3
+ arch.put(ellipsoid,cx,cy,floor+13.2,2.6,2.2,2.4,'Rock',8,5)  # keystone
+ arch.emit()
+
 # ---------- Lanterns inside the caves ----------
 n=0
-for x,y in [(-10,70),(10,58),(-10,44),(10,30),(-10,18)]+[(14*math.cos(math.radians(d)),4+14*math.sin(math.radians(d))) for d in (205,270,335)]:
+for x,y in [(-10,CH_Y+66),(10,CH_Y+54),(-10,CH_Y+40),(10,CH_Y+26),(-10,CH_Y+14)]+[(14*math.cos(math.radians(d)),CH_Y+14*math.sin(math.radians(d))) for d in (205,270,335)]:
  lantern('Lantern_CentreCave_%02d'%n,x,y,height(x,y));n+=1
 for ci,(a,b,hw,cr,floor) in enumerate(CAVES[1:],1):
  ux,uy=b[0]-a[0],b[1]-a[1];L=math.hypot(ux,uy);ux,uy=ux/L,uy/L;px,py=-uy,ux
@@ -407,7 +447,7 @@ def grassy(x,y,margin):
  if abs(height(x+1.5,y)-height(x-1.5,y))>2.2 or abs(height(x,y+1.5)-height(x,y-1.5))>2.2:return False
  if plot_clearance(x,y)<margin:return False
  if abs((a-BEACH_ANGLE+math.pi)%TAU-math.pi)<BEACH_HALF+.12 and r>RINNER-30:return False
- if y>30 and abs(x-river_x(y))<river_half(y)+5+margin:return False
+ if y>CH_Y-20 and abs(x-river_x(y))<river_half(y)+5+margin:return False
  if abs(y-BRIDGE_Y)<DECK_W and abs(x-BRIDGE_X)<SPAN/2+8:return False
  for ca,cb,hw,cr,floor in CAVES:
   if seg_dist(x,y,ca,cb)<hw+8+margin or math.hypot(x-cb[0],y-cb[1])<cr+8+margin:return False
@@ -417,7 +457,7 @@ def spot(margin,tries=400):
  for _ in range(tries):
   a=deco.uniform(0,TAU);r=deco.uniform(30,smooth_boundary(a));x,y=r*math.cos(a),r*math.sin(a)
   if grassy(x,y,margin):return x,y
-centres=[c for c in (spot(10) for _ in range(46)) if c]
+centres=[c for c in (spot(10) for _ in range(90)) if c]
 for i in range(70):
  c=spot(8)
  if not c:continue
@@ -444,7 +484,7 @@ for cx,cy in centres:
  for k in range(5):
   x,y=cx+deco.uniform(-20,20),cy+deco.uniform(-20,20)
   if grassy(x,y,2):tuft(quad_batch('TallGrass',x,y),x,y)
-for y in range(110,330,9):
+for y in range(int(VALLEY_Y0+40),int(330*LS),9):
  for side in (-1,1):
   x=river_x(y)+side*(river_half(y)+deco.uniform(9,14))
   if grassy(x,y,2) or abs(x-river_x(y))>river_half(y)+5:
@@ -455,11 +495,11 @@ for i in range(80):
 
 # ---------- Palm trees on the beach ----------
 palms=[]
-for i in range(60):
+for i in range(300):
  a=BEACH_ANGLE+deco.uniform(-.8,.8)*BEACH_HALF;rb=smooth_boundary(a);r=deco.uniform(RINNER+30,rb-40);x,y=r*math.cos(a),r*math.sin(a)
  if not beach(x,y) or plot_clearance(x,y)<14 or any(math.hypot(x-px,y-py)<30 for px,py in palms):continue
  palms.append((x,y))
- if len(palms)==8:break
+ if len(palms)==12:break
 for i,(x,y) in enumerate(palms):
  pt=Batch('PalmTree_%02d'%(i+1));z=height(x,y);la=math.atan2(y,x)+deco.uniform(-.7,.7);lean=deco.uniform(4,8);segs=9;H=deco.uniform(20,26)
  for k in range(segs):
@@ -496,7 +536,7 @@ def hill_spot(hd,t0,t1,avoid_ramp):
   if plot_clearance(x,y)<10 or hill_info(x,y)[1] not in (2,) or math.hypot(x-TX,y-TY)<32:continue
   if any(path_info(x+dx,y)[0]>0 for dx in (-7,0,7)):continue
   if any(seg_dist(x,y,ca,cb)<hw+10 or math.hypot(x-cb[0],y-cb[1])<cr+10 for ca,cb,hw,cr,fl in CAVES):continue
-  if y>30 and abs(x-river_x(y))<river_half(y)+14:continue
+  if y>CH_Y-20 and abs(x-river_x(y))<river_half(y)+14:continue
   return x,y
 plants=Batch('HillPlants')
 for hd in HILL_DEFS:

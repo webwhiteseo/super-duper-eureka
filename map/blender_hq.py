@@ -81,6 +81,7 @@ SPEC={
  'Iron':('noise',(.06,.06,.07),(.16,.16,.17),.4,.2,1.0),
 }
 for name,(kind,c1,c2,rough,bump,scale) in SPEC.items():node_mat(name,kind,c1,c2,rough,bump,scale)
+node_mat('Foam','noise',(.85,.9,.92),(.97,.99,1),.4,.1,.6)
 node_mat('Water','noise',(.02,.09,.11),(.04,.15,.18),.05,.15,.3,water)
 node_mat('LanternGlow','noise',(1,.8,.5),(1,.85,.55),.5,0,.5,emissive(25))
 for fl,c in [('FlowerRed',(.85,.12,.10)),('FlowerYellow',(.95,.75,.10)),('FlowerWhite',(.92,.92,.88)),('FlowerPurple',(.50,.25,.75))]:
@@ -270,9 +271,10 @@ looks=[l.identifier for l in scene.view_settings.bl_rna.properties['look'].enum_
 scene.view_settings.look=next((l for l in looks if 'Punchy' in l),'None');scene.view_settings.exposure=-1.8
 scene.render.resolution_x,scene.render.resolution_y=RES;scene.render.resolution_percentage=100
 
-CAMS={PREFIX+'Overview':((430,640,430),(30,-30,0),40),PREFIX+'Bridge':((-8,268,18),(0,-25,30),58),
-      PREFIX+'West':((-205,70,14),(0,-35,30),62),PREFIX+'SummitPath':((14,4,52),(0,-70,64),60),
-      PREFIX+'Tower':((90,10,95),(0,-70,100),55),PREFIX+'TowerInside':((0,-70,64),(0,-58,80),80)}
+CAMS={PREFIX+'Overview':((760,1120,760),(50,-60,0),40),PREFIX+'Bridge':((-10,470,30),(0,-60,80),60),
+      PREFIX+'West':((-430,120,25),(0,-60,70),62),PREFIX+'SummitPath':((14,-40,125),(0,-150,140),60),
+      PREFIX+'Tower':((95,-60,165),(0,-150,165),55),PREFIX+'TowerInside':((0,-150,127),(0,-138,143),80),
+      PREFIX+'Waterfall':((95,800,10),(0,690,-30),50)}
 def cam(name,loc,target,fov):
  cd=bpy.data.cameras.new(name);cd.lens_unit='FOV';cd.angle=math.radians(fov);cd.clip_end=5000
  c=bpy.data.objects.new(name,cd);col.objects.link(c);c.location=loc
