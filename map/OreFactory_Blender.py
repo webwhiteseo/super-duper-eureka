@@ -140,6 +140,21 @@ def hill_info(x,y):
   h,foot,zone=hill_shape(x,y,hd)
   if h>best[0] or (zone and not best[1]):best=(max(h,best[0]),zone if h>=best[0] else best[1])
  return best
+# Dirt path between the two flat tops: graded walkway, cut and filled into the slopes.
+PATH_A,PATH_B,PATH_W=(0,-16),(0,-52),4.5
+def path_info(x,y):
+ """Returns (blend 0..1, path height) for the summit path."""
+ ay,by=PATH_A[1],PATH_B[1];s=(ay-y)/(ay-by)
+ if s<-.15 or s>1.15:return 0,0
+ sc=min(1,max(0,s));cx=6*math.sin(math.pi*sc);d=abs(x-cx)
+ hA,hB=HILL_DEFS[0][2],HILL_DEFS[1][2];ph=hA+(hB-hA)*ss(sc)
+ end=min(1,(s+.15)/.15,(1.15-s)/.15)
+ return (1-ss((d-PATH_W)/6))*end,ph
+_hill_info=hill_info
+def hill_info(x,y):
+ h,zone=_hill_info(x,y);w,ph=path_info(x,y)
+ if w>0:h=h*(1-w)+ph*w;zone=5 if w>.6 else zone
+ return h,zone
 def hill_height(x,y):return hill_info(x,y)[0]
 def on_hill(x,y,margin=0):
  for hd in HILL_DEFS:
@@ -220,6 +235,7 @@ def ground_mat(c,size):
   hmid=sum(p[3] for p in c)/4
   if 3 in zones and slope>.9:return 'RockDark' if int((hmid+4*tint)/5)%2 else 'Rock'  # strata bands
   if 4 in zones:return 'Scree'
+  if zones.count(5)>=2:return 'Dirt'
   if slope>1.6:return 'Rock'
   if slope>1.35 and tint>.25:return 'Dirt'
  a=math.atan2(y,x);da=(a-BEACH_ANGLE+math.pi)%TAU-math.pi;r=math.hypot(x,y);rb=smooth_boundary(a)

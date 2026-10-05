@@ -1,6 +1,9 @@
-ORE FACTORY — BLENDER TERRAIN (v7)
+ORE FACTORY — BLENDER TERRAIN (v8)
 
 CHANGES IN THIS VERSION
+NEW IN v8
+- Dirt path from the centre-hill top to the tall-hill top: 9 studs wide, gently curved, max 30 degrees.
+
 NEW IN v7 (more natural hills)
 - Irregular outlines, rounded shoulders, long concave feet instead of cone shapes.
 - Spurs and gullies run down the slopes; gentle lumps and bumps (none on the flat tops).
