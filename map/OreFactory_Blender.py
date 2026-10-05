@@ -24,10 +24,15 @@ def boundary(a):
   if disc>=0:roots.append((-B+math.sqrt(disc))/(2*A))
  return max(roots)
 def smooth_boundary(a):
- return sum(boundary(a+q*.0075) for q in range(-4,5))/9 + 115*max(0,math.cos(a))**4
+ return sum(boundary(a+q*.0075) for q in range(-4,5))/9 + 115*max(0,math.cos(a))**4 + EXTEND
+# The island is extended outward and every edge slopes down to beach level, like the beach does.
+EXTEND,EDGE_LOW=80,-14.
+def edge_fade(x,y):
+ a=math.atan2(y,x);w=95+20*math.sin(3*a+1)+12*math.sin(7*a+2)
+ return ss((math.hypot(x,y)-(smooth_boundary(a)-w))/w)
 BEACH_ANGLE=.55
 # Sand is 30% wider than the previous version and has no water.
-RINNER=335
+RINNER=335+EXTEND
 BEACH_HALF=0.07358036935329436*2.5*1.3
 
 def beach(x,y):
@@ -182,6 +187,7 @@ def terrain(x,y):
  fade=min(1,plot_clearance(x,y)/22);fade=fade*fade*(3-2*fade)
  m=mountain_height(x,y);hf,zone=hill_info(x,y)
  orig=(base_height(x,y)+hf+m)*fade
+ e=edge_fade(x,y);orig=orig*(1-e)+EDGE_LOW*e
  h=orig;cave=-1
  if y>60:
   d=abs(x-river_x(y));v=(1-ss((d-river_half(y)-2)/14))*ss((math.hypot(x,y)-70)/12)
@@ -216,8 +222,8 @@ def ellipsoid(name,x,y,z,sx,sy,sz,mat,segments=9,rings=5):
 # split into 128-stud tiles (under 8,200 triangles each).
 # Edge vertices are pulled onto the coastline; hills, river and caves are carved into it.
 TILE=128
-xs=list(range(-560,-110,4))+list(range(-110,130,2))+list(range(130,704,4))
-ys=list(range(-400,-170,4))+list(range(-170,110,2))+list(range(110,404,4))
+xs=list(range(-660,-110,4))+list(range(-110,130,2))+list(range(130,804,4))
+ys=list(range(-480,-170,4))+list(range(-170,110,2))+list(range(110,484,4))
 CELLS=[(xs[i],xs[i+1],ys[j],ys[j+1]) for i in range(len(xs)-1) for j in range(len(ys)-1)]
 V={}
 for gx in xs:
@@ -292,7 +298,7 @@ for sector in range(8):
  mesh('Cliff_%02d'%sector,verts,faces,'Rock',True)
 # River water surface: a separate mesh, easy to delete if you use Roblox terrain water instead.
 wv=[];wf=[];ylist=[4+i*4 for i in range(120)]
-ylist=[y for y in ylist if y<smooth_boundary(math.atan2(y,river_x(y)))-1]
+ylist=[y for y in ylist if y<smooth_boundary(math.atan2(y,river_x(y)))-1 and height(river_x(y)+river_half(y)+4,y)>-1]
 for y in ylist:
  w=river_half(y)+1
  for s in (-1,1):wv.append((river_x(y)+s*w,y,-1.6))
