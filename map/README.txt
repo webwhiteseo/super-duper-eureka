@@ -1,6 +1,17 @@
-ORE FACTORY — BLENDER TERRAIN (v3)
+ORE FACTORY — BLENDER TERRAIN (v4)
 
 CHANGES IN THIS VERSION
+NEW IN v4
+- Both hills 50% taller: centre hill 36 studs, tall hill 47 studs (still 30% higher).
+- Tall hill now sits half inside the centre hill (behind it).
+- Each hill: flat top, a long walkable ramp on one side, an uneven rock cliff on the other.
+  Centre hill: ramp west, cliff east. Tall hill: ramp east, cliff west.
+- Each cliff has one climbable route: a staircase of ~5-stud ledges you jump up.
+  The rest of the cliff is two big drops (18-23 studs), too high to jump.
+- Boulders along the foot of each cliff (HillBoulders).
+- Ground is now a 2-stud grid around the hills for sharper cliffs (4-stud elsewhere).
+- OreFactory_Lighting.lua sets max walkable slope to 50 degrees so cliffs can't be walked up.
+
 NEW IN v3
 - Tall hill moved next to the centre hill. Ridge removed.
 - Wooden bridge over the river, between plots 4 and 5, with a lantern at each end.
@@ -12,8 +23,7 @@ NEW IN v3
 
 FROM v2
 - Beach 30% wider. Beach water removed (use your Roblox water).
-- Centre hill: 24 studs high, walkable, flat top (~48 stud wide) for builds. Spawn pad sits on top.
-- Tall hill right next to it, behind: 31 studs (30% higher), walkable. The two hills meet in a shallow dip (no ridge).
+- Centre hill: flat top (~52 studs wide) for builds. Spawn pad sits on top.
 - River runs from the front edge (+Y) to the centre hill and flows into a walk-in cave inside it.
   Cave has 7-stud ledges on both sides of the water and a chamber with a pool under the hill top.
 - Four mountains (two each side), each with a walk-in cave facing the middle of the map.

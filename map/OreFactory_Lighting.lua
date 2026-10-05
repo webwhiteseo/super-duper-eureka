@@ -2,6 +2,10 @@
 -- Studio: View > Command Bar, paste this whole file, press Enter. Safe to run again.
 local Lighting = game:GetService("Lighting")
 
+-- Players can't walk up slopes steeper than 50 degrees, so hill cliffs act as cliffs.
+-- Ramps stay walkable; the ledge route on each cliff is climbed by jumping.
+game:GetService("StarterPlayer").CharacterMaxSlopeAngle = 50
+
 Lighting.ClockTime = 15.5
 Lighting.Brightness = 2.2
 Lighting.Ambient = Color3.fromRGB(70, 78, 70)

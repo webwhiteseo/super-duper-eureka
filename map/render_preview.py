@@ -12,10 +12,10 @@ mats.update({'Wood':(.58,.40,.24),'WoodDark':(.36,.24,.14),'Iron':(.2,.2,.21),'L
 FOG=np.array([.80,.85,.84])
 W,H=1600,1180
 font='/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
-for name,top,region in [('OreFactory_3D_Preview',False,None),('OreFactory_Blender_TopDown',True,None),('OreFactory_CloseUp',False,(-95,95,-185,235))]:
+for name,top,region,view in [('OreFactory_3D_Preview',False,None,None),('OreFactory_Blender_TopDown',True,None,None),('OreFactory_CloseUp',False,(-110,110,-150,150),None),('OreFactory_Hills',False,(-120,120,-150,70),(.62,.42,.42))]:
  if top:r=np.array([1.,0,0]);u=np.array([0.,-1,0]);d=np.array([0.,0,1])
  else:
-  d=np.array([.27,.76,.66]);d/=np.linalg.norm(d);r=np.array([d[1],-d[0],0]);r/=np.linalg.norm(r);u=np.cross(r,d)
+  d=np.array(view or [.27,.76,.66],dtype=float);d/=np.linalg.norm(d);r=np.array([d[1],-d[0],0]);r/=np.linalg.norm(r);u=np.cross(r,d)
  allv=np.concatenate([np.array(o['v']) for o in scene])
  if region:allv=allv[(allv[:,0]>region[0])&(allv[:,0]<region[1])&(allv[:,1]>region[2])&(allv[:,1]<region[3])]
  proj=np.stack([allv@r,allv@u],axis=1);dmin,dmax=(allv@d).min(),(allv@d).max()
@@ -49,6 +49,6 @@ for name,top,region in [('OreFactory_3D_Preview',False,None),('OreFactory_Blende
  img=Image.fromarray(pix);draw=ImageDraw.Draw(img)
  draw.rectangle((0,0,W,88),fill=(232,236,229));draw.rectangle((0,H-110,W,H),fill=(232,236,229))
  draw.text((W/2,44),'ORE FACTORY / SMOOTH TERRAIN',font=ImageFont.truetype(font,32),fill='#30432f',anchor='mm')
- draw.text((W/2,H-76),{'OreFactory_CloseUp':'Twin hills • River cave • Wooden bridge • Lanterns • Flowers, bushes and tall grass'}.get(name,'Twin hills • River + bridge • Cave lanterns • Flowers and grass • Beach palms • Fog'),font=ImageFont.truetype(font,21),fill='#4d6149',anchor='mm')
+ draw.text((W/2,H-76),{'OreFactory_Hills':'Twin hills from the east: centre-hill cliff and ledge route, tall hill behind','OreFactory_CloseUp':'Twin hills: flat tops • ramps • uneven cliffs with a climbable ledge route'}.get(name,'Twin hills • River + bridge • Cave lanterns • Flowers and grass • Beach palms • Fog'),font=ImageFont.truetype(font,21),fill='#4d6149',anchor='mm')
  draw.text((W/2,H-39),'Geometry preview from the Blender script; not a Blender render. Import and play-testing still required.',font=ImageFont.truetype(font,16),fill='#63705f',anchor='mm')
  img.save(P/(name+'.png'));print(name)

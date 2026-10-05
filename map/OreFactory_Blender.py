@@ -48,10 +48,15 @@ for i in range(23):
  if plot_clearance(x,y)>32 and not beach(x,y):HILLS.append((x,y,random.uniform(13,30),random.uniform(24,42)))
 HILLS.extend([(-48,-175,6,24),(-215,63,7,31),(215,-82,8,32)])
 def ss(t):t=min(1,max(0,t));return t*t*(3-2*t)
-# Centre hill: flat top for builds. The tall hill (30% higher) sits right next to it, behind;
-# their slopes meet in a shallow dip. Both are walkable.
-SMALL_H,SMALL_TOP,SMALL_FOOT=24,24,82
-BIG_H,BIG_C,BIG_R=SMALL_H*1.3,(0,-112),(58,64)
+# Twin hills. The tall hill (30% higher) sits half inside the centre hill, behind it.
+# Each hill: flat top, a long walkable ramp on one side, an uneven rock cliff on the other.
+# Most of each cliff is two tall drops (too high to jump); one gully is a staircase of ~5-stud
+# ledges that players can jump up. Other sides are steady slopes.
+# (name, centre, height, top radius, ramp dir, ramp length, side-slope length, cliff dir, gully dir, phase)
+SMALL_H=36
+HILL_DEFS=[('Centre',(0,0),SMALL_H,26,180,80,56,0,32,.4),
+           ('Tall',(0,-62),SMALL_H*1.3,18,0,90,72,180,206,2.1)]
+SMALL_TOP=26
 # Mountains on the left and right sides: (x, y, height, spread).
 MOUNTAINS=[(592,48,78,52),(492,-214,62,46),(-420,-212,66,48),(-386,186,56,44)]
 # River runs from the front edge (+Y) into a walk-in cave in the centre hill.
@@ -78,10 +83,32 @@ def mountain_height(x,y):
   n=d2/(d2+s*s)  # noise fades out at the peak so it stays smooth
   h+=amp*math.exp(-d2/(2*s*s))*(1+n*(.13*math.sin(a*3+mx)+.07*math.sin(a*7+my)))
  return h
-def feature_height(x,y):
- r=math.hypot(x,y);small=SMALL_H*(1-ss((r-SMALL_TOP)/(SMALL_FOOT-SMALL_TOP)))
- q=math.hypot((x-BIG_C[0])/BIG_R[0],(y-BIG_C[1])/BIG_R[1]);big=BIG_H*(1-ss((q-.2)/.8))
- return max(small,big)
+def angdiff(a,b):return abs((a-b+180)%360-180)
+def stairs(t,n,w=.3):
+ # n flat ledges; each drop takes the last w of its step, so ledges stay level.
+ u=min(max(t,0),.9999)*n;i=math.floor(u);return (i+ss((u-i-(1-w))/w))/n
+def hill_shape(x,y,hd):
+ """Height of one hill and its outer footprint radius in this direction."""
+ name,(cx,cy),H,top,ramp,ramp_len,side_len,cliff,gully,ph=hd
+ dx,dy=x-cx,y-cy;r=math.hypot(dx,dy);th=math.degrees(math.atan2(dy,dx));tr=math.radians(th)
+ rt=top+1.6*math.sin(5*tr+ph)+1.0*math.sin(11*tr+2*ph)
+ wr=max(0,math.cos(math.radians(angdiff(th,ramp))))**2
+ wc=max(0,math.cos(math.radians(angdiff(th,cliff))))**2;k=ss((wc-.35)/.3)
+ L=side_len+(ramp_len-side_len)*wr
+ t=max(0,(r-rt)/L);smooth=1-(.6*min(t,1)+.4*ss(t))
+ g=ss(1-angdiff(th,gully)/14);n_g=max(3,round(H/5.2))
+ Lc=14+2.5*math.sin(7*tr+ph)+(n_g*6-14)*g;n=n_g if g>.5 else 2
+ tc=(r-rt)/Lc+.05*math.sin(9*tr+ph)+.03*math.sin(17*tr+3*ph)
+ cliffp=1-stairs(tc,n) if r>rt else 1.
+ p=smooth*(1-k)+cliffp*k
+ return H*max(0,p),rt+L*(1-k)+Lc*k
+def hill_height(x,y):return max(hill_shape(x,y,hd)[0] for hd in HILL_DEFS)
+def on_hill(x,y,margin=0):
+ for hd in HILL_DEFS:
+  h,foot=hill_shape(x,y,hd)
+  if math.hypot(x-hd[1][0],y-hd[1][1])<foot+margin:return True
+ return False
+def feature_height(x,y):return hill_height(x,y)
 for mx,my,amp,s in MOUNTAINS:
  d=math.hypot(mx,my);ux,uy=-mx/d,-my/d
  mouth=(mx+ux*s*1.95,my+uy*s*1.95);floor=base_height(*mouth)
@@ -97,10 +124,10 @@ def river_profile(x,y):
  d=abs(x-river_x(y));w=river_half(y)
  return max(1-ss((d-w+3)/3),1-ss((math.hypot(x,y-4)-7)/3))
 def terrain(x,y):
- """Returns carved height, uncarved height, mountain height, cave index or -1, river profile."""
+ """Returns carved height, uncarved height, mountain height, cave index or -1, river profile, hill height."""
  fade=min(1,plot_clearance(x,y)/22);fade=fade*fade*(3-2*fade)
- m=mountain_height(x,y)
- orig=(base_height(x,y)+feature_height(x,y)+m)*fade
+ m=mountain_height(x,y);hf=feature_height(x,y)
+ orig=(base_height(x,y)+hf+m)*fade
  h=orig;cave=-1
  if y>60:
   d=abs(x-river_x(y));v=(1-ss((d-river_half(y)-2)/14))*ss((math.hypot(x,y)-70)/12)
@@ -112,7 +139,7 @@ def terrain(x,y):
    if k>.5:cave=i
  rp=river_profile(x,y) if y>-14 and abs(x)<60 else 0
  if rp>0:h=min(h,-5*rp)
- return h,orig,m,cave,rp
+ return h,orig,m,cave,rp,hf*fade
 def height(x,y):return terrain(x,y)[0]
 def mesh(name,verts,faces,mat,smooth=False):
  SCENE.append(dict(name=name,v=verts,f=faces,mat=mat,smooth=smooth))
@@ -131,33 +158,36 @@ def ellipsoid(name,x,y,z,sx,sy,sz,mat,segments=9,rings=5):
  for j in range(rings):
   for i in range(segments):f.append(((j+1)*segments+i,(j+1)*segments+(i+1)%segments,j*segments+(i+1)%segments,j*segments+i))
  mesh(name,v,f,mat)
-# Ground: 4-stud grid split into 128-stud tiles (under 2,100 triangles each).
+# Ground: 2-stud grid around the hills (sharp cliffs and ledges), 4-stud elsewhere,
+# split into 128-stud tiles (under 8,200 triangles each).
 # Edge vertices are pulled onto the coastline; hills, river and caves are carved into it.
-STEP=4;TILE=128
-xs=range(-560,700+STEP,STEP);ys=range(-400,400+STEP,STEP)
+TILE=128
+xs=list(range(-560,-110,4))+list(range(-110,130,2))+list(range(130,704,4))
+ys=list(range(-400,-170,4))+list(range(-170,110,2))+list(range(110,404,4))
+CELLS=[(xs[i],xs[i+1],ys[j],ys[j+1]) for i in range(len(xs)-1) for j in range(len(ys)-1)]
 V={}
 for gx in xs:
  for gy in ys:
   a=math.atan2(gy,gx);rb=smooth_boundary(a);r=math.hypot(gx,gy);out=r>rb
   x,y=(gx*rb/r,gy*rb/r) if out else (gx,gy)
   V[gx,gy]=(x,y,out)+terrain(x,y)
-def ground_mat(c):
+def ground_mat(c,size):
  x=sum(p[0] for p in c)/4;y=sum(p[1] for p in c)/4
  if any(p[6]>=0 for p in c):return 'CaveRock'
  if max(p[7] for p in c)>.3:return 'RiverBed'
- slope=(max(p[3] for p in c)-min(p[3] for p in c))/STEP
+ slope=(max(p[3] for p in c)-min(p[3] for p in c))/size
  if max(p[5] for p in c)>18 and slope>.75:return 'Rock'
+ if max(p[8] for p in c)>3 and slope>1.1:return 'Rock'
  a=math.atan2(y,x);da=(a-BEACH_ANGLE+math.pi)%TAU-math.pi;r=math.hypot(x,y);rb=smooth_boundary(a)
  half=BEACH_HALF*(.82+.3*min(1,max(0,(r-RINNER)/(rb-RINNER))))
  if abs(da)<half and r>RINNER+9*math.cos(da/half*math.pi):
   t=(r-RINNER)/(rb-RINNER);return 'WetSand' if t>.93 else 'DrySand' if t>.68 else 'Sand'
  return 'Grass'
 tiles={}
-for gx in xs[:-1]:
- for gy in ys[:-1]:
-  ks=[(gx,gy),(gx+STEP,gy),(gx+STEP,gy+STEP),(gx,gy+STEP)];c=[V[k] for k in ks]
+for gx,gx2,gy,gy2 in CELLS:
+  ks=[(gx,gy),(gx2,gy),(gx2,gy2),(gx,gy2)];c=[V[k] for k in ks]
   if all(p[2] for p in c):continue
-  tiles.setdefault((gx//TILE,gy//TILE),[]).append((ks,ground_mat(c)))
+  tiles.setdefault((gx//TILE,gy//TILE),[]).append((ks,ground_mat(c,gx2-gx)))
 for (tx,ty),cells in sorted(tiles.items()):
  idx={};verts=[];faces=[];mi=[]
  for ks,mat in cells:
@@ -170,17 +200,17 @@ for (tx,ty),cells in sorted(tiles.items()):
 # Cave roofs: the original hill/mountain surface over each tunnel, double sided (rock ceiling inside).
 for ci,c in enumerate(CAVES):
  idx={};verts=[];faces=[];mi=[]
- for gx in xs[:-1]:
-  for gy in ys[:-1]:
-   ks=[(gx,gy),(gx+STEP,gy),(gx+STEP,gy+STEP),(gx,gy+STEP)];p=[V[k] for k in ks]
+ for gx,gx2,gy,gy2 in CELLS:
+  if True:
+   ks=[(gx,gy),(gx2,gy),(gx2,gy2),(gx,gy2)];p=[V[k] for k in ks]
    if any(q[2] for q in p) or not any(cave_mask(q[0],q[1],c)>.01 for q in p):continue
    if min(q[4] for q in p)-c[4]<13:continue
    f=[]
    for k in ks:
     if k not in idx:idx[k]=len(verts);verts.append((V[k][0],V[k][1],V[k][4]+.15))
     f.append(idx[k])
-   slope=(max(q[4] for q in p)-min(q[4] for q in p))/STEP
-   faces.append(tuple(f));mi.append('Rock' if max(q[5] for q in p)>18 and slope>.75 else 'Grass')
+   slope=(max(q[4] for q in p)-min(q[4] for q in p))/(gx2-gx)
+   faces.append(tuple(f));mi.append('Rock' if (max(q[5] for q in p)>18 and slope>.75) or (max(q[8] for q in p)>3 and slope>1.1) else 'Grass')
    faces.append(tuple(reversed(f)));mi.append('CaveRock')
  if faces:mesh('CaveRoof_%s'%('CentreHill' if ci==0 else 'Mountain%d'%ci),verts,faces,mi,True)
 # Continuous sculpted cliff skirt; no repeated block or ball cliff pieces.
@@ -212,8 +242,7 @@ mesh('RiverPool',pv,[(0,i+1,(i+1)%24+1) for i in range(24)],'Water',True)
 for i,(x,y,deg) in enumerate(PLOTS):box('Plot_%02d'%(i+1),x,y,1,150,150,2,deg,'Concrete')
 box('CentralSpawn',0,0,SMALL_H+.4,16,16,.8,0,'Spawn')
 def feature_clear(x,y,radius):
- if math.hypot(x,y)<SMALL_FOOT+radius+6:return False
- if math.hypot((x-BIG_C[0])/BIG_R[0],(y-BIG_C[1])/BIG_R[1])<1.15:return False
+ if on_hill(x,y,radius+6):return False
  if y>30 and abs(x-river_x(y))<river_half(y)+radius+16:return False
  for a,b,hw,cr,floor in CAVES:
   if seg_dist(x,y,a,b)<hw+radius+10 or math.hypot(x-b[0],y-b[1])<cr+radius+10:return False
@@ -304,7 +333,10 @@ for ci,(a,b,hw,cr,floor) in enumerate(CAVES[1:],1):
 # ---------- Flowers, bushes and tall grass ----------
 def grassy(x,y,margin):
  a=math.atan2(y,x);r=math.hypot(x,y)
- if r>smooth_boundary(a)-8 or r<SMALL_TOP+4:return False
+ if r>smooth_boundary(a)-8:return False
+ hh=hill_height(x,y)
+ if any(hh>hd[2]-.5 and math.hypot(x-hd[1][0],y-hd[1][1])<hd[3]+4 for hd in HILL_DEFS):return False
+ if abs(height(x+1.5,y)-height(x-1.5,y))>2.2 or abs(height(x,y+1.5)-height(x,y-1.5))>2.2:return False
  if plot_clearance(x,y)<margin:return False
  if abs((a-BEACH_ANGLE+math.pi)%TAU-math.pi)<BEACH_HALF+.12 and r>RINNER-30:return False
  if y>30 and abs(x-river_x(y))<river_half(y)+5+margin:return False
@@ -376,6 +408,16 @@ for i,(x,y) in enumerate(palms):
   for j in range(4):q=(2*j,2*j+1,2*j+3,2*j+2);f+=[q,q[::-1]]
   pt.add(v,f,'PalmLeaf')
  pt.emit()
+# ---------- Boulders along the foot of each hill cliff ----------
+hr=Batch('HillBoulders')
+for hd in HILL_DEFS:
+ cx,cy=hd[1]
+ for i in range(26):
+  th=hd[7]+deco.uniform(-62,62);h,foot=hill_shape(cx+math.cos(math.radians(th))*300,cy+math.sin(math.radians(th))*300,hd)
+  rr=foot*deco.uniform(.93,1.12);x,y=cx+rr*math.cos(math.radians(th)),cy+rr*math.sin(math.radians(th))
+  if plot_clearance(x,y)<8 or any(seg_dist(x,y,ca,cb)<hw+4 for ca,cb,hw,cr,fl in CAVES):continue
+  w=deco.uniform(2.5,6);hr.put(ellipsoid,x,y,height(x,y)+w*.25,w,w*deco.uniform(.6,.9),w*deco.uniform(.5,.8),'Rock',8,5)
+hr.emit()
 for b in QUAD.values():b.emit()
 
 try:import bpy
