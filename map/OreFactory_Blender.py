@@ -11,6 +11,9 @@ LAND=[(0,0,990,690),(-310,-100,450,440),(285,82,560,465),(-135,208,540,300),(165
 PLOTS=[(-155,-195,-5),(155,-211,9),(355,15,69),(162,204,-8),(-165,188,7),(-359,-12,-77)]
 MATS={'Grass':(.32,.47,.22),'GrassLight':(.37,.52,.26),'Rock':(.38,.41,.36),'Sand':(.79,.70,.49),'Concrete':(.59,.60,.56),'Bark':(.28,.19,.12),'Leaf':(.19,.34,.17),'LeafLight':(.29,.43,.21),'Spawn':(.62,.65,.56)}
 MATS.update({'DrySand':(.88,.79,.60),'WetSand':(.64,.60,.44),'CaveRock':(.27,.27,.26),'RiverBed':(.47,.43,.35),'Water':(.22,.52,.62)})
+MATS.update({'Wood':(.50,.34,.20),'WoodDark':(.30,.20,.12),'Iron':(.16,.16,.17),'LanternGlow':(1.0,.78,.42),'Bush':(.22,.40,.17),'BushLight':(.30,.48,.20),
+ 'TallGrass':(.40,.56,.24),'TallGrassDry':(.58,.60,.30),'FlowerRed':(.86,.24,.22),'FlowerYellow':(.96,.80,.22),'FlowerWhite':(.94,.93,.88),'FlowerPurple':(.58,.38,.80),
+ 'PalmTrunk':(.55,.42,.27),'PalmLeaf':(.25,.52,.20),'Coconut':(.35,.24,.13)})
 SCENE=[];random.seed(37)
 def boundary(a):
  c,s=math.cos(a),math.sin(a);roots=[]
@@ -45,9 +48,10 @@ for i in range(23):
  if plot_clearance(x,y)>32 and not beach(x,y):HILLS.append((x,y,random.uniform(13,30),random.uniform(24,42)))
 HILLS.extend([(-48,-175,6,24),(-215,63,7,31),(215,-82,8,32)])
 def ss(t):t=min(1,max(0,t));return t*t*(3-2*t)
-# Centre hill: flat top for builds; the tall hill behind it is 30% higher. Both have walkable slopes.
+# Centre hill: flat top for builds. The tall hill (30% higher) sits right next to it, behind;
+# their slopes meet in a shallow dip. Both are walkable.
 SMALL_H,SMALL_TOP,SMALL_FOOT=24,24,82
-BIG_H,BIG_C,BIG_R=SMALL_H*1.3,(0,-212),(64,92)
+BIG_H,BIG_C,BIG_R=SMALL_H*1.3,(0,-112),(58,64)
 # Mountains on the left and right sides: (x, y, height, spread).
 MOUNTAINS=[(592,48,78,52),(492,-214,62,46),(-420,-212,66,48),(-386,186,56,44)]
 # River runs from the front edge (+Y) into a walk-in cave in the centre hill.
@@ -74,16 +78,10 @@ def mountain_height(x,y):
   n=d2/(d2+s*s)  # noise fades out at the peak so it stays smooth
   h+=amp*math.exp(-d2/(2*s*s))*(1+n*(.13*math.sin(a*3+mx)+.07*math.sin(a*7+my)))
  return h
-# Walkable ridge joins the centre hill top to the tall hill top, rising gently between them.
-RIDGE_TOP,RIDGE_FALL=14,48
-def ridge_height(x,y):
- if y>0 or y<BIG_C[1]:return 0
- t=ss((-y-SMALL_TOP)/(-BIG_C[1]-BIG_R[1]*.2-SMALL_TOP))
- return (SMALL_H+(BIG_H-SMALL_H)*t)*(1-ss((abs(x)-RIDGE_TOP)/RIDGE_FALL))
 def feature_height(x,y):
  r=math.hypot(x,y);small=SMALL_H*(1-ss((r-SMALL_TOP)/(SMALL_FOOT-SMALL_TOP)))
  q=math.hypot((x-BIG_C[0])/BIG_R[0],(y-BIG_C[1])/BIG_R[1]);big=BIG_H*(1-ss((q-.2)/.8))
- return max(small,big,ridge_height(x,y))
+ return max(small,big)
 for mx,my,amp,s in MOUNTAINS:
  d=math.hypot(mx,my);ux,uy=-mx/d,-my/d
  mouth=(mx+ux*s*1.95,my+uy*s*1.95);floor=base_height(*mouth)
@@ -131,7 +129,7 @@ def ellipsoid(name,x,y,z,sx,sy,sz,mat,segments=9,rings=5):
    a=TAU*i/segments;v.append((x+sx*math.sin(p)*math.cos(a),y+sy*math.sin(p)*math.sin(a),z+sz*math.cos(p)))
  f=[]
  for j in range(rings):
-  for i in range(segments):f.append((j*segments+i,j*segments+(i+1)%segments,(j+1)*segments+(i+1)%segments,(j+1)*segments+i))
+  for i in range(segments):f.append(((j+1)*segments+i,(j+1)*segments+(i+1)%segments,j*segments+(i+1)%segments,j*segments+i))
  mesh(name,v,f,mat)
 # Ground: 4-stud grid split into 128-stud tiles (under 2,100 triangles each).
 # Edge vertices are pulled onto the coastline; hills, river and caves are carved into it.
@@ -216,7 +214,6 @@ box('CentralSpawn',0,0,SMALL_H+.4,16,16,.8,0,'Spawn')
 def feature_clear(x,y,radius):
  if math.hypot(x,y)<SMALL_FOOT+radius+6:return False
  if math.hypot((x-BIG_C[0])/BIG_R[0],(y-BIG_C[1])/BIG_R[1])<1.15:return False
- if BIG_C[1]<y<0 and abs(x)<RIDGE_TOP+RIDGE_FALL+radius+4:return False
  if y>30 and abs(x-river_x(y))<river_half(y)+radius+16:return False
  for a,b,hw,cr,floor in CAVES:
   if seg_dist(x,y,a,b)<hw+radius+10 or math.hypot(x-b[0],y-b[1])<cr+radius+10:return False
@@ -257,6 +254,130 @@ for i in range(30):
  z=height(x,y);w=random.uniform(5,10)
  ellipsoid('InteriorRock_%02d'%i,x,y,z+2,w,w*.7,random.uniform(3,6),'Rock',10,6)
 
+# ---------- Merged decoration meshes (fewer parts in Roblox) ----------
+class Batch:
+ def __init__(s,name):s.name=name;s.v=[];s.f=[];s.m=[]
+ def add(s,v,f,mat):o=len(s.v);s.v+=list(v);s.f+=[tuple(q+o for q in face) for face in f];s.m+=[mat]*len(f)
+ def put(s,fn,*a):fn('tmp',*a);ob=SCENE.pop();s.add(ob['v'],ob['f'],ob['mat'])
+ def emit(s):
+  if s.f:mesh(s.name,s.v,s.f,s.m,False)
+QUAD={}
+def quad_batch(kind,x,y):
+ key=kind+'_'+('N' if y<0 else 'S')+('W' if x<0 else 'E')
+ return QUAD.setdefault(key,Batch(key))
+def lantern(name,x,y,z,h=5):
+ frame=Batch(name+'_Frame')
+ frame.put(box,x,y,z+h/2,.7,.7,h,0,'WoodDark')
+ frame.put(box,x,y,z+h-.1,1.8,1.8,.3,0,'Iron')
+ frame.put(box,x,y,z+h+1.75,2.1,2.1,.4,0,'Iron')
+ frame.emit()
+ box(name+'_Glow',x,y,z+h+.75,1.4,1.4,1.6,0,'LanternGlow')
+
+# ---------- Wooden bridge over the river, between plots 4 and 5 ----------
+BRIDGE_Y=196;BRIDGE_X=river_x(BRIDGE_Y);SPAN,PLANKS,DECK_W=34,17,10
+bridge=Batch('WoodenBridge')
+deck=[]
+for i in range(PLANKS):
+ t=(i+.5)/PLANKS;x=BRIDGE_X-SPAN/2+SPAN*t;z=.55+2.6*math.sin(math.pi*t);deck.append((x,z))
+ bridge.put(box,x,BRIDGE_Y,z,SPAN/PLANKS-.18,DECK_W,.5,0,'Wood')
+for side in (-1,1):
+ yy=BRIDGE_Y+side*(DECK_W/2+.1)
+ for i in range(0,PLANKS,2):
+  x,z=deck[i];bridge.put(box,x,yy,z+1.9,.6,.6,3.4,0,'WoodDark')
+ for i in range(0,PLANKS-2,2):
+  (x0,z0),(x1,z1)=deck[i],deck[i+2];bridge.put(box,(x0+x1)/2,yy,(z0+z1)/2+3.3,x1-x0+.6,.45,.4,0,'Wood')
+ for dx in (-9,-4.5,4.5,9):
+  x=BRIDGE_X+dx;z=.55+2.6*math.sin(math.pi*(dx+SPAN/2)/SPAN);bridge.put(box,x,BRIDGE_Y+side*3.5,(z-5.5)/2,1,1,z+5.5,0,'WoodDark')
+bridge.emit()
+for side in (-1,1):lantern('Lantern_Bridge_%s'%('W' if side<0 else 'E'),BRIDGE_X+side*(SPAN/2+2.5),BRIDGE_Y+DECK_W/2+1.5,height(BRIDGE_X+side*(SPAN/2+2.5),BRIDGE_Y+DECK_W/2+1.5))
+
+# ---------- Lanterns inside the caves ----------
+n=0
+for x,y in [(-10,70),(10,58),(-10,44),(10,30),(-10,18)]+[(14*math.cos(math.radians(d)),4+14*math.sin(math.radians(d))) for d in (205,270,335)]:
+ lantern('Lantern_CentreCave_%02d'%n,x,y,height(x,y));n+=1
+for ci,(a,b,hw,cr,floor) in enumerate(CAVES[1:],1):
+ ux,uy=b[0]-a[0],b[1]-a[1];L=math.hypot(ux,uy);ux,uy=ux/L,uy/L;px,py=-uy,ux
+ spots=[(a[0]+ux*L*t+px*s*(hw-1.8),a[1]+uy*L*t+py*s*(hw-1.8)) for t,s in ((.3,1),(.55,-1),(.8,1))]
+ spots+=[(b[0]+(cr-3.5)*math.cos(math.atan2(uy,ux)+d),b[1]+(cr-3.5)*math.sin(math.atan2(uy,ux)+d)) for d in (-1.1,0,1.1)]
+ for k,(x,y) in enumerate(spots):lantern('Lantern_Mountain%dCave_%02d'%(ci,k),x,y,height(x,y))
+
+# ---------- Flowers, bushes and tall grass ----------
+def grassy(x,y,margin):
+ a=math.atan2(y,x);r=math.hypot(x,y)
+ if r>smooth_boundary(a)-8 or r<SMALL_TOP+4:return False
+ if plot_clearance(x,y)<margin:return False
+ if abs((a-BEACH_ANGLE+math.pi)%TAU-math.pi)<BEACH_HALF+.12 and r>RINNER-30:return False
+ if y>30 and abs(x-river_x(y))<river_half(y)+5+margin:return False
+ if abs(y-BRIDGE_Y)<DECK_W and abs(x-BRIDGE_X)<SPAN/2+8:return False
+ for ca,cb,hw,cr,floor in CAVES:
+  if seg_dist(x,y,ca,cb)<hw+8+margin or math.hypot(x-cb[0],y-cb[1])<cr+8+margin:return False
+ return mountain_height(x,y)<20
+deco=random.Random(91)
+def spot(margin,tries=400):
+ for _ in range(tries):
+  a=deco.uniform(0,TAU);r=deco.uniform(30,smooth_boundary(a));x,y=r*math.cos(a),r*math.sin(a)
+  if grassy(x,y,margin):return x,y
+centres=[c for c in (spot(10) for _ in range(46)) if c]
+for i in range(70):
+ c=spot(8)
+ if not c:continue
+ x,y=c;bt=quad_batch('Bushes',x,y)
+ for k in range(deco.randint(2,3)):
+  bx,by=x+deco.uniform(-3,3),y+deco.uniform(-3,3);w=deco.uniform(2.8,4.6)
+  bt.put(ellipsoid,bx,by,height(bx,by)+w*.45,w,w*deco.uniform(.8,1.1),w*.75,deco.choice(['Bush','BushLight']),8,4)
+for cx,cy in centres:
+ for k in range(3):
+  x,y=cx+deco.uniform(-14,14),cy+deco.uniform(-14,14)
+  if not grassy(x,y,3):continue
+  bt=quad_batch('Flowers',x,y);col=deco.choice(['FlowerRed','FlowerYellow','FlowerWhite','FlowerPurple'])
+  bt.put(ellipsoid,x,y,height(x,y)+.2,2.6,2.6,.7,'Leaf',7,3)
+  for j in range(deco.randint(5,8)):
+   fx,fy=x+deco.uniform(-2.4,2.4),y+deco.uniform(-2.4,2.4)
+   bt.put(ellipsoid,fx,fy,height(fx,fy)+deco.uniform(1,1.6),.75,.75,.45,col,6,3)
+def tuft(bt,x,y):
+ z=height(x,y);mat=deco.choice(['TallGrass','TallGrass','TallGrassDry'])
+ for j in range(deco.randint(6,9)):
+  gx,gy=x+deco.uniform(-1.4,1.4),y+deco.uniform(-1.4,1.4);a=deco.uniform(0,TAU);h=deco.uniform(2.4,4.4);lean=deco.uniform(.3,1.2);la=deco.uniform(0,TAU)
+  v=[(gx-.3*math.cos(a),gy-.3*math.sin(a),z-.2),(gx+.3*math.cos(a),gy+.3*math.sin(a),z-.2),(gx+lean*math.cos(la),gy+lean*math.sin(la),z+h)]
+  bt.add(v,[(0,1,2),(0,2,1)],mat)
+for cx,cy in centres:
+ for k in range(5):
+  x,y=cx+deco.uniform(-20,20),cy+deco.uniform(-20,20)
+  if grassy(x,y,2):tuft(quad_batch('TallGrass',x,y),x,y)
+for y in range(110,330,9):
+ for side in (-1,1):
+  x=river_x(y)+side*(river_half(y)+deco.uniform(9,14))
+  if grassy(x,y,2) or abs(x-river_x(y))>river_half(y)+5:
+   if plot_clearance(x,y)>2 and not (abs(y-BRIDGE_Y)<DECK_W and abs(x-BRIDGE_X)<SPAN/2+8):tuft(quad_batch('TallGrass',x,y),x,y)
+for i in range(80):
+ c=spot(2)
+ if c:tuft(quad_batch('TallGrass',*c),*c)
+
+# ---------- Palm trees on the beach ----------
+palms=[]
+for i in range(60):
+ a=BEACH_ANGLE+deco.uniform(-.8,.8)*BEACH_HALF;rb=smooth_boundary(a);r=deco.uniform(RINNER+30,rb-40);x,y=r*math.cos(a),r*math.sin(a)
+ if not beach(x,y) or plot_clearance(x,y)<14 or any(math.hypot(x-px,y-py)<30 for px,py in palms):continue
+ palms.append((x,y))
+ if len(palms)==8:break
+for i,(x,y) in enumerate(palms):
+ pt=Batch('PalmTree_%02d'%(i+1));z=height(x,y);la=math.atan2(y,x)+deco.uniform(-.7,.7);lean=deco.uniform(4,8);segs=9;H=deco.uniform(20,26)
+ for k in range(segs):
+  t=k/segs;w=2.1-.6*t
+  pt.put(box,x+lean*t*t*math.cos(la),y+lean*t*t*math.sin(la),z+H*(t+.5/segs),w,w,H/segs+.3,deco.uniform(0,90),'PalmTrunk')
+ tx,ty,tz=x+lean*math.cos(la),y+lean*math.sin(la),z+H
+ for k in range(3):pt.put(ellipsoid,tx+.9*math.cos(k*2.1),ty+.9*math.sin(k*2.1),tz-.6,.8,.8,.8,'Coconut',6,4)
+ for k in range(8):
+  fa=k*TAU/8+deco.uniform(-.2,.2);L=deco.uniform(10,13);v=[]
+  for j in range(5):
+   t=j/4;w=(1.7*math.sin(math.pi*min(1,t*1.15+.05)))+.15;cx,cy=tx+L*t*math.cos(fa),ty+L*t*math.sin(fa);cz=tz+1.2*math.sin(math.pi*t*.8)-4*t*t
+   v+=[(cx-w*math.sin(fa),cy+w*math.cos(fa),cz),(cx+w*math.sin(fa),cy-w*math.cos(fa),cz)]
+  f=[]
+  for j in range(4):q=(2*j,2*j+1,2*j+3,2*j+2);f+=[q,q[::-1]]
+  pt.add(v,f,'PalmLeaf')
+ pt.emit()
+for b in QUAD.values():b.emit()
+
 try:import bpy
 except ImportError:bpy=None
 if bpy:
@@ -267,6 +388,11 @@ if bpy:
   m=bpy.data.materials.new('OF_'+name);m.diffuse_color=(*color,1);m.use_nodes=True
   m.node_tree.nodes['Principled BSDF'].inputs['Base Color'].default_value=(*color,1)
   m.node_tree.nodes['Principled BSDF'].inputs['Roughness'].default_value=.85;mats[name]=m
+  if name=='LanternGlow':
+   ins=m.node_tree.nodes['Principled BSDF'].inputs
+   for key in ('Emission Color','Emission'):
+    if key in ins:ins[key].default_value=(*color,1)
+   if 'Emission Strength' in ins:ins['Emission Strength'].default_value=6
  for ob in SCENE:
   data=bpy.data.meshes.new(ob['name']);data.from_pydata(ob['v'],[],ob['f']);data.update()
   obj=bpy.data.objects.new(ob['name'],data);col.objects.link(obj)
@@ -279,6 +405,13 @@ if bpy:
  cam.location=(1040,1180,1150);target=Vector((20,0,0));cam.rotation_euler=(target-cam.location).to_track_quat('-Z','Y').to_euler();camdata.type='ORTHO';camdata.ortho_scale=1400;scene.camera=cam
  data=bpy.data.lights.new('OF_Sun','SUN');sun=bpy.data.objects.new('OF_Sun',data);col.objects.link(sun);sun.rotation_euler=(.5,-.4,-.6);data.energy=2.5;data.angle=.15
  scene.world=scene.world or bpy.data.worlds.new('OF_World');scene.world.color=(.55,.62,.7)
+ # Soft fog: thin volume scatter in the world, plus a pale sky colour.
+ try:
+  w=scene.world;w.use_nodes=True;nt=w.node_tree
+  nt.nodes['Background'].inputs['Color'].default_value=(.66,.74,.76,1)
+  vs=nt.nodes.new('ShaderNodeVolumeScatter');vs.inputs['Density'].default_value=.00035;vs.inputs['Color'].default_value=(.85,.9,.87,1)
+  out=[n for n in nt.nodes if n.type=='OUTPUT_WORLD'][0];nt.links.new(vs.outputs['Volume'],out.inputs['Volume'])
+ except Exception as e:print('World fog skipped:',e)
  scene.render.engine='CYCLES';scene.cycles.samples=32;scene.render.resolution_x=1600;scene.render.resolution_y=1200;scene.render.resolution_percentage=100
  scene.render.filepath=str(OUT/'OreFactory_BlenderRender.png')
  print('Ore Factory scene created. Save As a .blend, then F12 to render. Existing scene objects are preserved.')
