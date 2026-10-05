@@ -16,7 +16,7 @@ MATS.update({'DrySand':(.88,.79,.60),'WetSand':(.64,.60,.44),'CaveRock':(.27,.27
 MATS.update({'Wood':(.50,.34,.20),'WoodDark':(.30,.20,.12),'Iron':(.16,.16,.17),'LanternGlow':(1.0,.78,.42),'Bush':(.22,.40,.17),'BushLight':(.30,.48,.20),
  'TallGrass':(.40,.56,.24),'TallGrassDry':(.58,.60,.30),'FlowerRed':(.86,.24,.22),'FlowerYellow':(.96,.80,.22),'FlowerWhite':(.94,.93,.88),'FlowerPurple':(.58,.38,.80),
  'PalmTrunk':(.55,.42,.27),'PalmLeaf':(.25,.52,.20),'Coconut':(.35,.24,.13),
- 'GrassDark':(.29,.44,.20),'Stone':(.56,.55,.51),'StoneDark':(.43,.42,.39),'Gravel':(.48,.46,.42),'RoofWood':(.40,.22,.14),'RoofTile':(.42,.13,.10),'Banner':(.55,.07,.07),'CastleStone':(.16,.155,.15),'CastleStoneDark':(.10,.096,.093),'Gold':(.85,.64,.18),'Dirt':(.45,.36,.24),'Scree':(.50,.48,.44),'RockDark':(.30,.31,.29),'Foam':(.88,.93,.95),'Waterfall':(.45,.70,.82)})
+ 'GrassDark':(.29,.44,.20),'Stone':(.56,.55,.51),'StoneDark':(.43,.42,.39),'Gravel':(.48,.46,.42),'RoofWood':(.40,.22,.14),'RoofTile':(.42,.13,.10),'Banner':(.55,.07,.07),'CastleStone':(.16,.155,.15),'CastleStoneDark':(.10,.096,.093),'Gold':(.85,.64,.18),'Dirt':(.45,.36,.24),'Scree':(.50,.48,.44),'RockDark':(.30,.31,.29),'Foam':(.88,.93,.95),'Waterfall':(.45,.70,.82),'Bone':(.83,.79,.67),'BoneDark':(.60,.54,.43)})
 SCENE=[];random.seed(37)
 def boundary(a):
  c,s=math.cos(a),math.sin(a);roots=[]
@@ -226,6 +226,28 @@ def ellipsoid(name,x,y,z,sx,sy,sz,mat,segments=9,rings=5):
  for j in range(rings):
   for i in range(segments):f.append(((j+1)*segments+i,(j+1)*segments+(i+1)%segments,j*segments+(i+1)%segments,j*segments+i))
  mesh(name,v,f,mat)
+# ---------- Fossil dig sites: open, flat spots away from plots, hills, river, caves and the coast ----------
+FOSSIL_KINDS=[('TRex',36),('Triceratops',26),('LongNeck',48)]
+def fossil_site_ok(x,y,R):
+ a=math.atan2(y,x);r=math.hypot(x,y)
+ if r>smooth_boundary(a)-140-R or plot_clearance(x,y)<R+18 or on_hill(x,y,R+12):return False
+ if y>CH_Y-60 and abs(x-river_x(y))<river_half(y)+R+30:return False
+ if beach(x,y) or abs((a-BEACH_ANGLE+math.pi)%TAU-math.pi)<BEACH_HALF+.15:return False
+ for ca,cb,hw,cr,fl in CAVES:
+  if seg_dist(x,y,ca,cb)<hw+R+20 or math.hypot(x-cb[0],y-cb[1])<cr+R+20:return False
+ ring=[(x+R*math.cos(k*TAU/8),y+R*math.sin(k*TAU/8)) for k in range(8)]+[(x,y)]
+ if any(mountain_height(px,py)>2 for px,py in ring):return False
+ hs=[height(px,py) for px,py in ring]
+ return max(hs)-min(hs)<5
+FOSSILS=[];_fr=random.Random(91)
+for kind,R in FOSSIL_KINDS:
+ for _ in range(4000):
+  a=_fr.uniform(0,TAU);r=_fr.uniform(250,smooth_boundary(a)-150);x,y=r*math.cos(a),r*math.sin(a)
+  if fossil_site_ok(x,y,R) and all(math.hypot(x-fx,y-fy)>R+fr_+120 for _,fx,fy,fr_,_y in FOSSILS):
+   FOSSILS.append((kind,x,y,R,_fr.uniform(0,360)));break
+def near_fossil(x,y,m=0):
+ return any(math.hypot(x-fx,y-fy)<fr_+m for _,fx,fy,fr_,_y in FOSSILS)
+
 # Ground: 2-stud grid around the hills (sharp cliffs and ledges), 4-stud elsewhere,
 # split into 128-stud tiles (under 8,200 triangles each).
 # Edge vertices are pulled onto the coastline; hills, river and caves are carved into it.
@@ -243,6 +265,9 @@ def ground_mat(c,size):
  x=sum(p[0] for p in c)/4;y=sum(p[1] for p in c)/4
  if any(p[6]>=0 for p in c):return 'CaveRock'
  if max(p[7] for p in c)>.3:return 'RiverBed'
+ for _k,fx,fy,fr_,_y in FOSSILS:  # dug-up dirt under each fossil, ragged edge
+  d=math.hypot(x-fx,y-fy)
+  if d<fr_*.9+4*math.sin(math.atan2(y-fy,x-fx)*5+fx)+3*sum(p[10] for p in c):return 'Dirt'
  slope=(max(p[3] for p in c)-min(p[3] for p in c))/size
  if max(p[5] for p in c)>18 and slope>.75:return 'Rock'
  zones=[p[9] for p in c];tint=sum(p[10] for p in c)/4
@@ -291,7 +316,7 @@ for ci,c in enumerate(CAVES):
  if faces:mesh('CaveRoof_%s'%('CentreHill' if ci==0 else 'Mountain%d'%ci),verts,faces,mi,True)
 # Continuous sculpted cliff skirt; no repeated block or ball cliff pieces.
 N=512
-# Where the river leaves the island: the skirt is recessed there so the waterfall falls clear of it.
+# Where the river leaves the island (the waterfall starts here).
 _y=CH_Y
 while math.hypot(river_x(_y),_y)<smooth_boundary(math.atan2(_y,river_x(_y))):_y+=1
 RIVER_EXIT_A=math.atan2(_y,river_x(_y));RIVER_EXIT_HALF=(river_half(_y)+6)/_y
@@ -302,8 +327,6 @@ for sector in range(8):
   for i in range(65):
    a=TAU*(sector*64+i)/N;r=smooth_boundary(a)
    offset=math.sin(t*math.pi)*5+math.sin(a*17+t*2)*3*t
-   rw=1-ss((abs(a-RIVER_EXIT_A)-RIVER_EXIT_HALF)/RIVER_EXIT_HALF)
-   offset-=9*rw*min(1,t*4)
    x,y=(r+offset)*math.cos(a),(r+offset)*math.sin(a)
    top=height(r*math.cos(a),r*math.sin(a));z=top*(1-t)+(-43-3*math.sin(a*5))*t
    verts.append((x,y,z))
@@ -315,6 +338,7 @@ for sector in range(8):
 wv=[];wf=[];ylist=[CH_Y+i*4 for i in range(300)]
 ylist=[y for y in ylist if math.hypot(river_x(y),y)<smooth_boundary(math.atan2(y,river_x(y)))-1]
 def water_z(y):return EDGE_LOW*edge_fade(river_x(y),y)-1.6
+RIVER_EXIT_Y=_y;ylist.append(RIVER_EXIT_Y)  # water runs right to the edge
 for y in ylist:
  w=river_half(y)+1
  for s in (-1,1):wv.append((river_x(y)+s*w,y,water_z(y)))
@@ -323,19 +347,19 @@ mesh('RiverWater',wv,wf,'Water',True)
 pv=[(0,CH_Y,-1.6)]+[(0+10*math.cos(TAU*i/24),CH_Y+10*math.sin(TAU*i/24),-1.6) for i in range(24)]
 mesh('RiverPool',pv,[(0,i+1,(i+1)%24+1) for i in range(24)],'Water',True)
 # Waterfall: the river pours over the island edge and falls past the rock skirt, out of the map.
-yb=ylist[-1];xb=river_x(yb);zt=water_z(yb);wb=river_half(yb)+1.5;fv=[];ff=[];ROWS=12
+# One continuous sheet: it rolls over the rounded lip at the edge, then arcs out clear of the rock.
+yb=RIVER_EXIT_Y;xb=river_x(yb);zt=water_z(yb);wb=river_half(yb)+1;fv=[];ff=[];fm=[];ROWS=16
 for k in range(ROWS+1):
- t=k/ROWS;yy=yb+1+17*t**.5;zz=zt-75*t;ww=wb*(1+.35*t)  # arcs out past the rock skirt
+ t=k/ROWS;tt=t*t*1.0
+ yy=yb+18*math.sqrt(t);zz=zt-80*t**1.15;ww=wb*(1+.3*t)
  fv+=[(xb-ww,yy,zz),(xb+ww,yy,zz)]
 for k in range(ROWS):
- q=(2*k,2*k+1,2*k+3,2*k+2);ff+=[q,q[::-1]]  # double-sided
-mesh('Waterfall',fv,ff,['Waterfall']*len(ff),True)
-lip=[(xb-wb-.5,yb-.5,zt+.15),(xb+wb+.5,yb-.5,zt+.15),(xb+wb+.5,yb+2.2,zt-1.6),(xb-wb-.5,yb+2.2,zt-1.6)]
-mesh('WaterfallFoam',lip,[(0,1,2,3),(3,2,1,0)],'Foam',True)
+ q=(2*k,2*k+1,2*k+3,2*k+2);mat='Foam' if k<2 else 'Waterfall';ff+=[q,q[::-1]];fm+=[mat,mat]  # double-sided
+mesh('Waterfall',fv,ff,fm,True)
 for i,(x,y,deg) in enumerate(PLOTS):box('Plot_%02d'%(i+1),x,y,1,150,150,2,deg,'Concrete')
 box('CentralSpawn',0,0,SMALL_H+.4,16,16,.8,0,'Spawn')
 def feature_clear(x,y,radius):
- if on_hill(x,y,radius+6):return False
+ if on_hill(x,y,radius+6) or near_fossil(x,y,radius+8):return False
  if y>CH_Y-20 and abs(x-river_x(y))<river_half(y)+radius+16:return False
  for a,b,hw,cr,floor in CAVES:
   if seg_dist(x,y,a,b)<hw+radius+10 or math.hypot(x-b[0],y-b[1])<cr+radius+10:return False
@@ -447,7 +471,7 @@ for ci,(a,b,hw,cr,floor) in enumerate(CAVES[1:],1):
 # ---------- Flowers, bushes and tall grass ----------
 def grassy(x,y,margin):
  a=math.atan2(y,x);r=math.hypot(x,y)
- if r>smooth_boundary(a)-8:return False
+ if r>smooth_boundary(a)-8 or near_fossil(x,y,margin+4):return False
  if any(path_info(x+dx,y)[0]>0 for dx in (-7,0,7)) or math.hypot(x-TX,y-TY)<24:return False
  hh=hill_height(x,y)
  if any(hh>hd[2]-.5 and math.hypot(x-hd[1][0],y-hd[1][1])<hd[3]+4 for hd in HILL_DEFS):return False
@@ -566,6 +590,112 @@ for hd in HILL_DEFS:
   plants.put(ellipsoid,x+deco.uniform(-4,4),y+deco.uniform(-4,4),z+h-2.5,6,6,5,'Leaf',7,4)
 plants.emit()
 hr.emit()
+
+# ---------- Dinosaur fossils: half-buried skeletons on dirt dig sites ----------
+def _n(v):l=math.sqrt(sum(c*c for c in v)) or 1.;return tuple(c/l for c in v)
+def _cross(a,b):return (a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0])
+def tube(pts,radii,sides=6):
+ """Bone tube along points (local coords), capped. radii: one per point."""
+ V=[];F=[]
+ for i,p in enumerate(pts):
+  d=_n(tuple(pts[min(i+1,len(pts)-1)][k]-pts[max(i-1,0)][k] for k in range(3)))
+  up=(0,0,1) if abs(d[2])<.95 else (1,0,0);dot=sum(up[k]*d[k] for k in range(3))
+  u=_n(tuple(up[k]-d[k]*dot for k in range(3)));w=_cross(d,u)
+  for j in range(sides):
+   t=TAU*j/sides;V.append(tuple(p[k]+radii[i]*(math.cos(t)*u[k]+math.sin(t)*w[k]) for k in range(3)))
+ for i in range(len(pts)-1):
+  for j in range(sides):F.append((i*sides+j,i*sides+(j+1)%sides,(i+1)*sides+(j+1)%sides,(i+1)*sides+j))
+ F.append(tuple(range(sides-1,-1,-1)));F.append(tuple(range((len(pts)-1)*sides,len(pts)*sides)))
+ return V,F
+def spike(base,tip,r,sides=6):
+ return tube([base,tip],[r,.02],sides)
+def blob(c,s,sides=7,rings=4):
+ V=[];F=[]
+ for j in range(rings+1):
+  ph=math.pi*j/rings
+  for i in range(sides):
+   t=TAU*i/sides;V.append((c[0]+s[0]*math.sin(ph)*math.cos(t),c[1]+s[1]*math.sin(ph)*math.sin(t),c[2]+s[2]*math.cos(ph)))
+ for j in range(rings):
+  for i in range(sides):F.append(((j+1)*sides+i,(j+1)*sides+(i+1)%sides,j*sides+(i+1)%sides,j*sides+i))
+ return V,F
+def lerp_pts(ctrl,n):
+ out=[]
+ for i in range(n):
+  t=i/(n-1)*(len(ctrl)-1);k=min(int(t),len(ctrl)-2);f=t-k
+  out.append(tuple(ctrl[k][m]*(1-f)+ctrl[k+1][m]*f for m in range(3)))
+ return out
+def skeleton_parts(kind,rr):
+ P=[]  # (verts, faces, material) in local coords: x = head direction, z up, ground at z=0
+ B,D='Bone','BoneDark'
+ if kind=='TRex':
+  spine=lerp_pts([(-32,4,.4),(-20,1,.8),(-8,0,1.2),(4,0,1.3),(12,0,1.6)],40)
+  P.append(tube(spine,[.35+.55*i/39 for i in range(40)])+(B,))
+  for i,p in enumerate(spine[::2]):P.append(blob((p[0],p[1],p[2]+.5),(.5+.5*i/20,.45,.7+.4*i/20))+(D,))
+  for x in [-6+1.6*k for k in range(10)]:                              # rib cage arching up from the ground
+   h=9.5*math.sin(math.pi*(x+6)/16)**.5+1.5
+   for sd in (-1,1):P.append(tube([(x,sd*.5,1.2),(x+.3,sd*3.4,h*.45),(x+.6,sd*4.2,h*.8),(x+.8,sd*3.0,h),(x+.9,sd*1.4,h+.3)],[.32,.3,.28,.24,.18])+(B,))
+  P.append(blob((-10,0,1.6),(3.2,2.6,1.4))+(D,))                       # pelvis
+  for sd in (-1,1):                                                    # legs lying beside the body
+   P.append(tube([(-11,sd*3,.6),(-14,sd*7.5,.7),(-19,sd*8.5,.6)],[.9,.65,.6])+(B,));P.append(blob((-11,sd*3,.7),(1.3,1.2,1))+(B,))
+   P.append(tube([(-19,sd*8.5,.6),(-24,sd*9.5,.5)],[.55,.45])+(B,))
+   for t in (-.5,0,.5):P.append(spike((-24,sd*9.5,.5),(-26.5,sd*(9.5+t*2),.3),.22)+(D,))
+   P.append(tube([(8,sd*1.5,2.5),(10,sd*3.2,1.5),(11.5,sd*3.6,.7)],[.25,.2,.15])+(B,))  # tiny arms
+  v,f=tube([(12.2,0,3.4),(14.5,0,3.9),(18,0,3.7),(21.5,0,3.1),(25,0,2.4)],[2.5,2.7,2.3,1.7,.9],6)
+  P.append(([(x,y*.78,z) for x,y,z in v],f,B))                         # long angular skull
+  for sd in (-1,1):P.append(blob((14.6,sd*1.4,5.6),(1.6,.6,.6))+(D,))  # brow ridges
+  P.append(tube([(14,0,1.6),(19,0,.5),(24,0,.4)],[1.6,1.3,.8],8)+(B,))  # lower jaw, dropped open
+  for sd in (-1,1):
+   P.append(blob((15.2,sd*2.3,4.2),(1.0,.4,.9))+(D,))                 # eye sockets
+   for k in range(7):
+    x=16.5+k*1.15;P.append(spike((x,sd*1.6,2.0),(x+.2,sd*1.6,.9),.28)+(B,))   # teeth
+    P.append(spike((x-.4,sd*1.1,1.1),(x-.3,sd*1.1,2.0),.22)+(B,))
+ elif kind=='Triceratops':
+  spine=lerp_pts([(-20,2,.4),(-12,0,.9),(-2,0,1.3),(6,0,1.4)],30)
+  P.append(tube(spine,[.3+.45*i/29 for i in range(30)])+(B,))
+  for i,p in enumerate(spine[::2]):P.append(blob((p[0],p[1],p[2]+.45),(.45,.4,.6))+(D,))
+  for x in [-8+1.5*k for k in range(9)]:
+   h=7*math.sin(math.pi*(x+8)/13.5)**.5+1.2
+   for sd in (-1,1):P.append(tube([(x,sd*.5,1.1),(x+.2,sd*3.6,h*.5),(x+.3,sd*4.3,h*.85),(x+.4,sd*3,h),(x+.5,sd*1.2,h+.2)],[.3,.28,.26,.22,.16])+(B,))
+  P.append(blob((-9,0,1.4),(2.6,2.2,1.2))+(D,))
+  for sd in (-1,1):
+   for x0 in (-9,2):P.append(tube([(x0,sd*2.5,.6),(x0-2,sd*6.5,.6),(x0-5,sd*7.5,.5)],[.75,.55,.5])+(B,))
+  # skull with the big frill, three horns and a beak
+  P.append(blob((9.5,0,2.6),(3.4,2.4,2.2))+(B,));P.append(blob((13,0,2.0),(2.2,1.6,1.6))+(B,))
+  P.append(spike((14.6,0,2.0),(16.8,0,1.2),.9,6)+(D,))                 # beak
+  P.append(spike((12.8,0,3.3),(14.2,0,5.2),.55)+(B,))                  # nose horn
+  for sd in (-1,1):P.append(tube([(10.5,sd*1.3,4.2),(12.5,sd*1.7,7.0),(15.5,sd*1.6,9.2),(17.5,sd*1.2,10)],[.75,.55,.32,.05])+(B,))  # brow horns
+  fc=(7.2,0,3.6);FR=7.5;n=12;fv=[fc];ff=[]
+  for k in range(n+1):
+   t=math.radians(-100+200*k/n);fv.append((fc[0]-FR*.35*abs(math.sin(t))-1.5*math.cos(t)*.0,fc[1]+FR*math.sin(t),fc[2]+FR*.9*math.cos(t)))
+  for k in range(n):ff+=[(0,k+1,k+2),(0,k+2,k+1)]
+  P.append((fv,ff,B))
+  for k in range(1,n+2,1):                                             # knobs round the frill edge
+   x,y,z=fv[k];P.append(spike((x,y,z),(x-.6,y*1.12,z+(.9 if z>fc[2]-1 else .4)),.32)+(D,))
+  for sd in (-1,1):P.append(blob((6.4,sd*3,6),(.4,1.3,1.2))+(D,))      # frill windows
+ else:  # LongNeck
+  spine=lerp_pts([(-46,-6,.3),(-32,0,.6),(-16,0,1.2),(0,0,1.6),(10,0,1.4),(22,4,1.0),(34,10,.9),(42,9,1.6)],70)
+  P.append(tube(spine,[.25+.8*math.sin(math.pi*min(1,(i+8)/60)) for i in range(70)])+(B,))
+  for i,p in enumerate(spine[::2]):P.append(blob((p[0],p[1],p[2]+.6),(.5,.5,.6+.5*math.sin(math.pi*i/35)))+(D,))
+  for x in [-12+1.8*k for k in range(12)]:
+   h=12*math.sin(math.pi*(x+12)/21.6)**.5+1.5
+   for sd in (-1,1):P.append(tube([(x,sd*.6,1.5),(x+.3,sd*5,h*.45),(x+.5,sd*6.2,h*.8),(x+.7,sd*4.4,h),(x+.8,sd*1.8,h+.3)],[.42,.4,.36,.3,.22])+(B,))
+  P.append(blob((-15,0,1.8),(4,3.2,1.8))+(D,))
+  for sd in (-1,1):
+   for x0 in (-15,6):
+    P.append(tube([(x0,sd*3.2,.8),(x0-3,sd*9,.8),(x0-7,sd*11,.7)],[1.3,1.0,.9])+(B,));P.append(blob((x0,sd*3.2,.9),(1.7,1.5,1.2))+(B,))
+  P.append(blob((44,8.5,2.2),(2.2,1.3,1.3))+(B,));P.append(blob((45.8,8.3,2.0),(1.2,1.0,.9))+(D,))  # small skull
+ return P
+for idx,(kind,fx,fy,R,rot) in enumerate(FOSSILS):
+ rr=random.Random(300+idx);a=math.radians(rot);ca,sa=math.cos(a),math.sin(a);gz=height(fx,fy)-.35
+ fb=Batch('Fossil_%s'%kind)
+ for v,f,mat in skeleton_parts(kind,rr):
+  fb.add([(fx+ca*x-sa*y,fy+sa*x+ca*y,gz+z) for x,y,z in v],f,mat)
+ for k in range(9):                                                    # loose bones and fragments nearby
+  t=rr.uniform(0,TAU);d=rr.uniform(R*.55,R*.95);x,y=fx+d*math.cos(t),fy+d*math.sin(t);l=rr.uniform(2,4.5);o=rr.uniform(0,TAU)
+  v,f=tube([(x-l*math.cos(o),y-l*math.sin(o),height(x,y)+.2),(x+l*math.cos(o),y+l*math.sin(o),height(x,y)+.2)],[.35,.3]);fb.add(v,f,'Bone')
+  v,f=blob((x+l*math.cos(o),y+l*math.sin(o),height(x,y)+.3),(.6,.6,.5));fb.add(v,f,'BoneDark')
+ fb.emit()
+print('Fossils:',[(k,round(x),round(y)) for k,x,y,_r,_o in FOSSILS])
 
 # ---------- Stone path between the tops: flagstone slabs (they step up the slope) ----------
 stones=Batch('StonePath')

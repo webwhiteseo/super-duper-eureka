@@ -15,7 +15,7 @@ local LOOK = {
 	LeafLight = {M.SmoothPlastic, 75, 115, 50}, PalmTrunk = {M.Wood, 150, 120, 80}, PalmLeaf = {M.SmoothPlastic, 70, 135, 55},
 	Coconut = {M.SmoothPlastic, 90, 62, 35}, Iron = {M.Metal, 40, 40, 42}, Gold = {M.Metal, 215, 165, 45},
 	Banner = {M.Fabric, 140, 20, 20}, LanternGlow = {M.Neon, 255, 200, 120}, Water = {M.Glass, 40, 110, 130},
-	Waterfall = {M.Glass, 120, 185, 215}, Foam = {M.SmoothPlastic, 225, 238, 245},
+	Waterfall = {M.Glass, 120, 185, 215}, Bone = {M.Limestone, 222, 212, 182}, BoneDark = {M.Limestone, 165, 150, 120}, Foam = {M.SmoothPlastic, 225, 238, 245},
 	FlowerRed = {M.SmoothPlastic, 220, 60, 50}, FlowerYellow = {M.SmoothPlastic, 240, 200, 50},
 	FlowerWhite = {M.SmoothPlastic, 240, 240, 230}, FlowerPurple = {M.SmoothPlastic, 150, 90, 210},
 }

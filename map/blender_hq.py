@@ -82,6 +82,8 @@ SPEC={
 }
 for name,(kind,c1,c2,rough,bump,scale) in SPEC.items():node_mat(name,kind,c1,c2,rough,bump,scale)
 node_mat('Foam','noise',(.85,.9,.92),(.97,.99,1),.4,.1,.6)
+node_mat('Bone','noise',(.70,.65,.53),(.90,.86,.74),.8,.3,.8)
+node_mat('BoneDark','noise',(.50,.44,.34),(.66,.60,.48),.8,.3,.8)
 node_mat('Waterfall','wave',(.35,.62,.75),(.75,.90,.96),.15,.2,.25)
 node_mat('Water','noise',(.02,.09,.11),(.04,.15,.18),.05,.15,.3,water)
 node_mat('LanternGlow','noise',(1,.8,.5),(1,.85,.55),.5,0,.5,emissive(25))
@@ -93,6 +95,7 @@ clouds=bpy.data.textures.new('OF_Clouds','CLOUDS');clouds.noise_scale=6;clouds.n
 hill_info=G['hill_info'];mountain_height=G['mountain_height'];path_info=G['path_info'];plot_clearance=G['plot_clearance']
 CAVES=G['CAVES'];seg_dist=G['seg_dist']
 def near_cave(x,y,m=10):
+ if y>G['CH_Y']-20 and abs(x-G['river_x'](y))<G['river_half'](y)+14:return True  # river channel + waterfall lip stay exact
  return any(seg_dist(x,y,a,b)<hw+m or math.hypot(x-b[0],y-b[1])<cr+m for a,b,hw,cr,fl in CAVES)
 def slope_weight(x,y):
  if plot_clearance(x,y)<6 or path_info(x,y)[0]>0 or near_cave(x,y):return 0.
@@ -284,6 +287,9 @@ def cam(name,loc,target,fov):
  c=bpy.data.objects.new(name,cd);col.objects.link(c);c.location=loc
  c.rotation_euler=(Vector(target)-Vector(loc)).to_track_quat('-Z','Y').to_euler();return c
 cams={n:cam(n,*v) for n,v in CAMS.items()}
+for kind,fx,fy,R,rot in G.get('FOSSILS',[]):  # one close-up camera per fossil
+ a=math.radians(rot+120);gz=G['height'](fx,fy)
+ cams[PREFIX+'Fossil_'+kind]=cam(PREFIX+'Fossil_'+kind,(fx+R*1.25*math.cos(a),fy+R*1.25*math.sin(a),gz+R*.55),(fx,fy,gz+3),55)
 if 'OF_Overview' in bpy.data.objects:bpy.data.objects.remove(bpy.data.objects['OF_Overview'],do_unlink=True)
 scene.camera=cams[PREFIX+'Overview']
 BLEND='OreFactory_LowPoly.blend' if LOWPOLY else 'OreFactory_HQ.blend'
