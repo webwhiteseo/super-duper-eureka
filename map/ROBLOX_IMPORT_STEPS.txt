@@ -1,0 +1,17 @@
+ORE FACTORY -> ROBLOX STUDIO
+
+1. Studio: Home tab > Import 3D (or File > Import 3D). Pick OreFactory_Roblox.fbx.
+2. In the import window:
+   - Scale Unit: Stud
+   - Untick "Import Only As Model"? Leave it ticked (one model).
+   - Untick "Import as single mesh" (keeps every part and its name)
+   - Tick "Anchored"
+   - Tick "Insert Using Scene Position"
+   Click Import. The model is called OreFactory_Roblox.
+3. View > Command Bar: paste RobloxSetup.lua, press Enter (colours, Roblox materials, collision).
+4. Command Bar: paste OreFactory_Lighting.lua, press Enter (fog, atmosphere, lantern lights, 50-degree slope limit).
+5. Optional: paste ../mine/DragonGlassMine.lua to add the Dragon Glass Mine.
+6. Play-test: walk the ramps, the summit path, into the castle and up its stairs.
+
+511 parts, 115k triangles total, every part under 10k triangles. Map is about 1220 x 740 studs.
+Plots are 150 x 150 concrete slabs (Plot_01..06_Concrete). Spawn: CentralSpawn_Spawn on the centre hill.

@@ -52,7 +52,7 @@ local lit = 0
 for _, part in ipairs(workspace:GetDescendants()) do
 	if part:IsA("BasePart") then
 		local name = part.Name
-		if name:match("^Lantern_.*_Glow$") then
+		if name:match("^Lantern_.*Glow") or name:match("_LanternGlow$") then
 			part.Material = Enum.Material.Neon
 			part.Color = Color3.fromRGB(255, 200, 120)
 			part.CanCollide = false
