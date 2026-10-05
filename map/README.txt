@@ -1,6 +1,9 @@
-ORE FACTORY — BLENDER TERRAIN (v9)
+ORE FACTORY — BLENDER TERRAIN (v10)
 
 CHANGES IN THIS VERSION
+NEW IN v10
+- Tall grass and bushes removed (Blender grass scatter removed too). Flowers, trees and rocks stay.
+
 NEW IN v9
 - Summit path is now stone: gravel bed with flagstone slabs that step up the slope (StonePath).
 - Stone lookout tower on the tall-hill top where the path ends (SummitTower): 11x11 studs, 18 high,

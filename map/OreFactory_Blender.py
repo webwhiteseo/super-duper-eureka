@@ -554,8 +554,17 @@ tw.emit()
 for sx in (-1,1):lantern('Lantern_Tower_%s'%('W' if sx<0 else 'E'),TX+sx*(DOOR/2+1.6),TY+S/2+1.6,height(TX+sx*(DOOR/2+1.6),TY+S/2+1.6))
 for b in QUAD.values():b.emit()
 
+# No tall grass and no bushes (removed on request). Generated above so the rest of the layout
+# keeps the same random placement, then dropped here.
+SCENE[:]=[o for o in SCENE if not (o['name'].startswith('Bushes_') or o['name'].startswith('TallGrass_'))]
+for o in SCENE:
+ if o['name']=='HillPlants':
+  keep=[i for i,m in enumerate(o['mat']) if m not in ('Bush','BushLight')]
+  o['f']=[o['f'][i] for i in keep];o['mat']=[o['mat'][i] for i in keep]
+
 try:import bpy
 except ImportError:bpy=None
+if os.environ.get('OF_EXPORT'):bpy=None  # force OBJ/JSON export even where bpy is installed
 if bpy:
  from mathutils import Vector
  col=bpy.data.collections.new('OreFactory_SmoothTerrain');bpy.context.scene.collection.children.link(col)

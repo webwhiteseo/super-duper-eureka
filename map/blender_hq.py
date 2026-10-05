@@ -197,7 +197,7 @@ def scatter_group():
   ms=N('GeometryNodeMaterialSelection');ms.inputs['Material'].default_value=bpy.data.materials['OF_'+mname]
   if sel is None:sel=ms.outputs[0]
   else:o=N('FunctionNodeBooleanMath');o.operation='OR';L(sel,o.inputs[0]);L(ms.outputs[0],o.inputs[1]);sel=o.outputs[0]
- for coll,density,smin,smax,seed in ((grass_col,.22,.8,1.5,1),(flower_col,.006,.8,1.3,2),(pebble_col,.01,.6,1.6,3)):
+ for coll,density,smin,smax,seed in ((flower_col,.006,.8,1.3,2),(pebble_col,.01,.6,1.6,3))  # no grass scatter:
   dp=N('GeometryNodeDistributePointsOnFaces');dp.inputs['Density'].default_value=density;dp.inputs['Seed'].default_value=seed
   L(gi.outputs[0],dp.inputs['Mesh']);L(sel,dp.inputs['Selection'])
   ci=N('GeometryNodeCollectionInfo');ci.inputs['Collection'].default_value=coll;ci.inputs['Separate Children'].default_value=True;ci.inputs['Reset Children'].default_value=True
