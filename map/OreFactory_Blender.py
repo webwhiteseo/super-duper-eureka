@@ -16,7 +16,7 @@ MATS.update({'DrySand':(.88,.79,.60),'WetSand':(.64,.60,.44),'CaveRock':(.27,.27
 MATS.update({'Wood':(.50,.34,.20),'WoodDark':(.30,.20,.12),'Iron':(.16,.16,.17),'LanternGlow':(1.0,.78,.42),'Bush':(.22,.40,.17),'BushLight':(.30,.48,.20),
  'TallGrass':(.40,.56,.24),'TallGrassDry':(.58,.60,.30),'FlowerRed':(.86,.24,.22),'FlowerYellow':(.96,.80,.22),'FlowerWhite':(.94,.93,.88),'FlowerPurple':(.58,.38,.80),
  'PalmTrunk':(.55,.42,.27),'PalmLeaf':(.25,.52,.20),'Coconut':(.35,.24,.13),
- 'GrassDark':(.29,.44,.20),'Stone':(.56,.55,.51),'StoneDark':(.43,.42,.39),'Gravel':(.48,.46,.42),'RoofWood':(.40,.22,.14),'RoofTile':(.42,.13,.10),'Banner':(.55,.07,.07),'CastleStone':(.16,.155,.15),'CastleStoneDark':(.10,.096,.093),'Gold':(.85,.64,.18),'Dirt':(.45,.36,.24),'Scree':(.50,.48,.44),'RockDark':(.30,.31,.29),'Foam':(.88,.93,.95)})
+ 'GrassDark':(.29,.44,.20),'Stone':(.56,.55,.51),'StoneDark':(.43,.42,.39),'Gravel':(.48,.46,.42),'RoofWood':(.40,.22,.14),'RoofTile':(.42,.13,.10),'Banner':(.55,.07,.07),'CastleStone':(.16,.155,.15),'CastleStoneDark':(.10,.096,.093),'Gold':(.85,.64,.18),'Dirt':(.45,.36,.24),'Scree':(.50,.48,.44),'RockDark':(.30,.31,.29),'Foam':(.88,.93,.95),'Waterfall':(.45,.70,.82)})
 SCENE=[];random.seed(37)
 def boundary(a):
  c,s=math.cos(a),math.sin(a);roots=[]
@@ -285,11 +285,16 @@ for ci,c in enumerate(CAVES):
     if k not in idx:idx[k]=len(verts);verts.append((V[k][0],V[k][1],V[k][4]+.15))
     f.append(idx[k])
    slope=(max(q[4] for q in p)-min(q[4] for q in p))/(gx2-gx)
-   faces.append(tuple(f));mi.append('Rock' if (max(q[5] for q in p)>18 and slope>.75) or (max(q[8] for q in p)>3 and slope>1.6) else 'Grass')
+   tint=sum(q[10] for q in p)/4  # same grass shades as the ground around it
+   faces.append(tuple(f));mi.append('Rock' if (max(q[5] for q in p)>18 and slope>.75) or (max(q[8] for q in p)>3 and slope>1.9) else 'GrassDark' if tint<-.22 else 'GrassLight' if tint>.25 else 'Grass')
    faces.append(tuple(reversed(f)));mi.append('CaveRock')
  if faces:mesh('CaveRoof_%s'%('CentreHill' if ci==0 else 'Mountain%d'%ci),verts,faces,mi,True)
 # Continuous sculpted cliff skirt; no repeated block or ball cliff pieces.
 N=512
+# Where the river leaves the island: the skirt is recessed there so the waterfall falls clear of it.
+_y=CH_Y
+while math.hypot(river_x(_y),_y)<smooth_boundary(math.atan2(_y,river_x(_y))):_y+=1
+RIVER_EXIT_A=math.atan2(_y,river_x(_y));RIVER_EXIT_HALF=(river_half(_y)+6)/_y
 for sector in range(8):
  verts=[];faces=[]
  for j in range(5):
@@ -297,6 +302,8 @@ for sector in range(8):
   for i in range(65):
    a=TAU*(sector*64+i)/N;r=smooth_boundary(a)
    offset=math.sin(t*math.pi)*5+math.sin(a*17+t*2)*3*t
+   rw=1-ss((abs(a-RIVER_EXIT_A)-RIVER_EXIT_HALF)/RIVER_EXIT_HALF)
+   offset-=9*rw*min(1,t*4)
    x,y=(r+offset)*math.cos(a),(r+offset)*math.sin(a)
    top=height(r*math.cos(a),r*math.sin(a));z=top*(1-t)+(-43-3*math.sin(a*5))*t
    verts.append((x,y,z))
@@ -318,11 +325,11 @@ mesh('RiverPool',pv,[(0,i+1,(i+1)%24+1) for i in range(24)],'Water',True)
 # Waterfall: the river pours over the island edge and falls past the rock skirt, out of the map.
 yb=ylist[-1];xb=river_x(yb);zt=water_z(yb);wb=river_half(yb)+1.5;fv=[];ff=[];ROWS=12
 for k in range(ROWS+1):
- t=k/ROWS;yy=yb+1+11*t**.6;zz=zt-75*t;ww=wb*(1+.35*t)
+ t=k/ROWS;yy=yb+1+17*t**.5;zz=zt-75*t;ww=wb*(1+.35*t)  # arcs out past the rock skirt
  fv+=[(xb-ww,yy,zz),(xb+ww,yy,zz)]
 for k in range(ROWS):
  q=(2*k,2*k+1,2*k+3,2*k+2);ff+=[q,q[::-1]]  # double-sided
-mesh('Waterfall',fv,ff,['Water']*len(ff),True)
+mesh('Waterfall',fv,ff,['Waterfall']*len(ff),True)
 lip=[(xb-wb-.5,yb-.5,zt+.15),(xb+wb+.5,yb-.5,zt+.15),(xb+wb+.5,yb+2.2,zt-1.6),(xb-wb-.5,yb+2.2,zt-1.6)]
 mesh('WaterfallFoam',lip,[(0,1,2,3),(3,2,1,0)],'Foam',True)
 for i,(x,y,deg) in enumerate(PLOTS):box('Plot_%02d'%(i+1),x,y,1,150,150,2,deg,'Concrete')

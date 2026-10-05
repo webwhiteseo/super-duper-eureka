@@ -82,6 +82,7 @@ SPEC={
 }
 for name,(kind,c1,c2,rough,bump,scale) in SPEC.items():node_mat(name,kind,c1,c2,rough,bump,scale)
 node_mat('Foam','noise',(.85,.9,.92),(.97,.99,1),.4,.1,.6)
+node_mat('Waterfall','wave',(.35,.62,.75),(.75,.90,.96),.15,.2,.25)
 node_mat('Water','noise',(.02,.09,.11),(.04,.15,.18),.05,.15,.3,water)
 node_mat('LanternGlow','noise',(1,.8,.5),(1,.85,.55),.5,0,.5,emissive(25))
 for fl,c in [('FlowerRed',(.85,.12,.10)),('FlowerYellow',(.95,.75,.10)),('FlowerWhite',(.92,.92,.88)),('FlowerPurple',(.50,.25,.75))]:
@@ -90,8 +91,11 @@ for fl,c in [('FlowerRed',(.85,.12,.10)),('FlowerYellow',(.95,.75,.10)),('Flower
 # ---------- 3. Terrain: subdivision, smooth by angle, slope displacement ----------
 clouds=bpy.data.textures.new('OF_Clouds','CLOUDS');clouds.noise_scale=6;clouds.noise_depth=3
 hill_info=G['hill_info'];mountain_height=G['mountain_height'];path_info=G['path_info'];plot_clearance=G['plot_clearance']
+CAVES=G['CAVES'];seg_dist=G['seg_dist']
+def near_cave(x,y,m=10):
+ return any(seg_dist(x,y,a,b)<hw+m or math.hypot(x-b[0],y-b[1])<cr+m for a,b,hw,cr,fl in CAVES)
 def slope_weight(x,y):
- if plot_clearance(x,y)<6 or path_info(x,y)[0]>0:return 0.
+ if plot_clearance(x,y)<6 or path_info(x,y)[0]>0 or near_cave(x,y):return 0.
  h,zone=hill_info(x,y)
  if zone in (2,3,4):return 1.
  return 1. if mountain_height(x,y)>8 else 0.
@@ -108,7 +112,7 @@ if LOWPOLY:
  for name,o in objs.items():
   if not (name.startswith('Ground_') or name.startswith('Cliff_') or name.startswith('CaveRoof_')):continue
   me=o.data;bm=bmesh.new();bm.from_mesh(me);bm.verts.ensure_lookup_table()
-  edge=[v.index for v in bm.verts if any(e.is_boundary for e in v.link_edges)];bm.free()
+  edge=[v.index for v in bm.verts if any(e.is_boundary for e in v.link_edges) or near_cave(v.co.x,v.co.y)];bm.free()  # keep cave surroundings exact so the roofs fit
   keep=o.vertex_groups.new(name='Decimate');keep.add(list(range(len(me.vertices))),1.,'REPLACE');keep.add(edge,0.,'REPLACE')
   if name.startswith('Ground_'):
    vg=o.vertex_groups.new(name='Slopes')
@@ -116,7 +120,7 @@ if LOWPOLY:
     w=slope_weight(v.co.x,v.co.y)
     if w>0:vg.add([i],w,'REPLACE')
    d=o.modifiers.new('SlopeDetail','DISPLACE');d.texture=clouds;d.strength=3.5;d.vertex_group='Slopes';d.texture_coords='GLOBAL'
-  if name.startswith('CaveRoof_'):continue
+  if name.startswith('CaveRoof_') or name.startswith('Cliff_'):continue  # skirt stays as built (waterfall recess)
   dm=o.modifiers.new('LowPoly','DECIMATE');dm.decimate_type='COLLAPSE';dm.ratio=.1 if name.startswith('Ground_') else .3
   dm.use_collapse_triangulate=True;dm.vertex_group='Decimate';dm.vertex_group_factor=1.
 for name,o in ([] if LOWPOLY else objs.items()):
