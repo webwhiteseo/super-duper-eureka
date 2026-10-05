@@ -178,6 +178,16 @@ Kd 0.55 0.07 0.07
 Ka 0.1 0.1 0.1
 d 1
 
+newmtl CastleStone
+Kd 0.16 0.155 0.15
+Ka 0.1 0.1 0.1
+d 1
+
+newmtl CastleStoneDark
+Kd 0.1 0.096 0.093
+Ka 0.1 0.1 0.1
+d 1
+
 newmtl Gold
 Kd 0.85 0.64 0.18
 Ka 0.1 0.1 0.1
