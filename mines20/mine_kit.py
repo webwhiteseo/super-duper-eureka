@@ -368,6 +368,16 @@ def lathe(name, C, profile, mat, coll, n=24, smooth=True):
     return finish(name, bm, mat, coll, merge=0.0005)
 
 
+def ellip(name, C, rx, ry, rz, mat, coll, n=16, m=8, smooth=True, half=False, ax=X_AXIS, ay=V(0, 1, 0), az=V(0, 0, 1)):
+    """Ellipsoid (or flat-bottomed half dome with half=True) with radii along ax, ay, az - shells, plates, bodies."""
+    ax, ay, az = ax.normalized(), ay.normalized(), az.normalized()
+    k0 = 0 if half else -m
+    phis = [math.pi / 2 * k / m for k in range(k0, m + 1)]
+    rings = [ring_pts(C + az * rz * math.sin(ph), ay * ry, ax * rx, max(math.cos(ph), 1e-4), n) for ph in phis]
+    bm = loft(rings, cap0=True, cap1=True, smooth_sides=smooth)
+    return finish(name, bm, mat, coll, smooth=smooth, merge=0.0005)
+
+
 def dot(name, C, r, mat, coll):
     """Tiny low-poly sphere (rivets, suckers, spots, studs) - 80 triangles."""
     bm = bmesh.new()
