@@ -1,4 +1,4 @@
-ORE FACTORY - 20 DROPPER MINES
+ORE FACTORY - 25 DROPPER MINES
 ==============================
 Mines 1-5 (folder mine/):  Frost Wyrm, Emerald Wyvern, Crimson Drake, Astral Orrery, Cosmic Drake (fusion)
                            -> colour them with mine/MineLighting.lua
@@ -14,7 +14,13 @@ NO BASE: mines 6-20 have no display plinth - they sit straight on the ground, so
 (Corsair Cannon keeps a thin "SeaWater" pool so the ship floats - delete that part if you have your own water.)
 Want the plinth back? Re-run the script with --base.
 
-PUT ONE IN ROBLOX STUDIO (mines 6-20)
+Mines 21-25 (folder mine/): more Dragonglass-style drakes - same body, each with its own colours + details
+ 21 Sapphire Tide (fins, water-orb heart)   22 Solar Gold (sun crown, sun-core heart)
+ 23 Shadow Amethyst (bone horns, void eye, chains)   24 Venom Drake (viper horns, venom canister, toxic barrel)
+ 25 Storm Drake (lightning crown, tesla-coil heart, storm cloud)
+ -> each has its own <Name>_RobloxSetup.lua (same steps as below). No base either; run with --base to add the plinth.
+
+PUT ONE IN ROBLOX STUDIO (mines 6-25)
 1. Home > Import 3D > pick <Name>_Roblox.fbx
    - Scale Unit = Stud, UNTICK "Import as single mesh", tick Anchored. Click Import.
 2. Click the imported model in the Explorer so it is selected.
