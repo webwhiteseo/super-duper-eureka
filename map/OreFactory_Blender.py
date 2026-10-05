@@ -9,11 +9,12 @@ OUT=Path(__file__).resolve().parent if '__file__' in globals() else Path.home()/
 OUT.mkdir(parents=True,exist_ok=True)
 LAND=[(0,0,990,690),(-310,-100,450,440),(285,82,560,465),(-135,208,540,300),(165,-214,540,300)]
 PLOTS=[(-155,-195,-5),(155,-211,9),(355,15,69),(162,204,-8),(-165,188,7),(-359,-12,-77)]
-MATS={'Grass':(.32,.47,.22),'GrassLight':(.37,.52,.26),'Rock':(.38,.41,.36),'Sand':(.79,.70,.49),'Concrete':(.59,.60,.56),'Bark':(.28,.19,.12),'Leaf':(.19,.34,.17),'LeafLight':(.29,.43,.21),'Spawn':(.62,.65,.56)}
+MATS={'Grass':(.32,.47,.22),'GrassLight':(.35,.50,.24),'Rock':(.38,.41,.36),'Sand':(.79,.70,.49),'Concrete':(.59,.60,.56),'Bark':(.28,.19,.12),'Leaf':(.19,.34,.17),'LeafLight':(.29,.43,.21),'Spawn':(.62,.65,.56)}
 MATS.update({'DrySand':(.88,.79,.60),'WetSand':(.64,.60,.44),'CaveRock':(.27,.27,.26),'RiverBed':(.47,.43,.35),'Water':(.22,.52,.62)})
 MATS.update({'Wood':(.50,.34,.20),'WoodDark':(.30,.20,.12),'Iron':(.16,.16,.17),'LanternGlow':(1.0,.78,.42),'Bush':(.22,.40,.17),'BushLight':(.30,.48,.20),
  'TallGrass':(.40,.56,.24),'TallGrassDry':(.58,.60,.30),'FlowerRed':(.86,.24,.22),'FlowerYellow':(.96,.80,.22),'FlowerWhite':(.94,.93,.88),'FlowerPurple':(.58,.38,.80),
- 'PalmTrunk':(.55,.42,.27),'PalmLeaf':(.25,.52,.20),'Coconut':(.35,.24,.13)})
+ 'PalmTrunk':(.55,.42,.27),'PalmLeaf':(.25,.52,.20),'Coconut':(.35,.24,.13),
+ 'GrassDark':(.29,.44,.20),'Dirt':(.45,.36,.24),'Scree':(.50,.48,.44),'RockDark':(.30,.31,.29)})
 SCENE=[];random.seed(37)
 def boundary(a):
  c,s=math.cos(a),math.sin(a);roots=[]
@@ -54,8 +55,8 @@ def ss(t):t=min(1,max(0,t));return t*t*(3-2*t)
 # ledges that players can jump up. Other sides are steady slopes.
 # (name, centre, height, top radius, ramp dir, ramp length, side-slope length, cliff dir, gully dir, phase)
 SMALL_H=36*1.3  # v6: both hills 30% taller (centre 46.8, tall 60.8)
-HILL_DEFS=[('Centre',(0,0),SMALL_H,26,180,60,49,0,32,.4),
-           ('Tall',(0,-62),SMALL_H*1.3,18,0,78,63,180,206,2.1)]
+HILL_DEFS=[('Centre',(0,0),SMALL_H,26,180,76,64,0,32,.4),
+           ('Tall',(0,-62),SMALL_H*1.3,18,0,98,80,180,206,2.1)]
 SMALL_TOP=26
 # Mountains on the left and right sides: (x, y, height, spread).
 MOUNTAINS=[(592,48,78,52),(492,-214,62,46),(-420,-212,66,48),(-386,186,56,44)]
@@ -87,25 +88,62 @@ def angdiff(a,b):return abs((a-b+180)%360-180)
 def stairs(t,n,w=.3):
  # n flat ledges; each drop takes the last w of its step, so ledges stay level.
  u=min(max(t,0),.9999)*n;i=math.floor(u);return (i+ss((u-i-(1-w))/w))/n
+def _hash(ix,iy,seed):
+ n=(ix*374761393+iy*668265263+seed*144665)&0xffffffff;n=((n^(n>>13))*1274126177)&0xffffffff
+ return ((n^(n>>16))&0xffff)/65535.
+def vnoise(x,y,seed=0):
+ """Smooth value noise in [-1,1]."""
+ ix,iy=math.floor(x),math.floor(y);fx,fy=x-ix,y-iy;u=fx*fx*(3-2*fx);v=fy*fy*(3-2*fy)
+ a,b,c,d=_hash(ix,iy,seed),_hash(ix+1,iy,seed),_hash(ix,iy+1,seed),_hash(ix+1,iy+1,seed)
+ return 2*(a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v)-1
+def fbm(x,y,octaves=4,seed=0):
+ out,amp,f,norm=0.,1.,1.,0.
+ for o in range(octaves):out+=amp*vnoise(x*f,y*f,seed+o*17);norm+=amp;amp*=.5;f*=2.03
+ return out/norm
+TALUS=16  # scree apron below each cliff
 def hill_shape(x,y,hd):
- """Height of one hill and its outer footprint radius in this direction."""
+ """Height of one hill, its outer footprint radius in this direction, and zone
+ (0 off hill, 1 flat top, 2 slope, 3 cliff face, 4 scree)."""
  name,(cx,cy),H,top,ramp,ramp_len,side_len,cliff,gully,ph=hd
  dx,dy=x-cx,y-cy;r=math.hypot(dx,dy);th=math.degrees(math.atan2(dy,dx));tr=math.radians(th)
- rt=top+1.6*math.sin(5*tr+ph)+1.0*math.sin(11*tr+2*ph)
+ # Irregular outline and top edge (low-frequency, so no spikes).
+ outline=1+.10*math.sin(2*tr+ph)+.07*math.sin(3*tr+2.3*ph)+.04*math.sin(5*tr+.7*ph)
+ rt=top*(1+.07*math.sin(3*tr+ph)+.04*math.sin(6*tr+1.7*ph))
  wr=max(0,math.cos(math.radians(angdiff(th,ramp))))**2
  wc=max(0,math.cos(math.radians(angdiff(th,cliff))))**2;k=ss((wc-.35)/.3)
- L=side_len+(ramp_len-side_len)*wr
- t=max(0,(r-rt)/L);smooth=1-(.6*min(t,1)+.4*ss(t))
+ L=(side_len+(ramp_len-side_len)*wr)*outline
+ # Natural slope: rounded shoulder at the top, steepest mid-slope, long concave foot.
+ # Spurs and gullies run down the slope (fewer on the ramp so it stays walkable).
+ t=max(0,(r-rt)/L)
+ spur=(.07*math.sin(8*tr+3*ph+2.2*t)+.04*math.sin(13*tr+ph-1.5*t))*min(1,1.5*t)*(1-.7*wr)
+ tw=min(1,t*(1+spur))
+ smooth=.5*(1+math.cos(math.pi*tw))
+ bell=math.sin(math.pi*tw)
+ lump=(3.0*fbm(x/46,y/46,3,11+int(ph*10))+.9*fbm(x/13,y/13,2,29))*bell*(1-.55*wr)
+ # Cliff: uneven rock face with two strata ledges; one gully is a jumpable ledge route.
  g=ss(1-angdiff(th,gully)/14);n_g=max(3,round(H/5.2))
- Lc=14+2.5*math.sin(7*tr+ph)+(n_g*6-14)*g;n=n_g if g>.5 else 2
- tc=(r-rt)/Lc+.05*math.sin(9*tr+ph)+.03*math.sin(17*tr+3*ph)
- cliffp=1-stairs(tc,n) if r>rt else 1.
+ Lc=(14+3*math.sin(4*tr+ph)+2*math.sin(9*tr+2*ph))+(n_g*6-14)*g;n=n_g if g>.5 else 2
+ b=.16  # scree height, as a fraction of the hill
+ rc=r-rt-Lc*(.05*math.sin(5*tr+ph)+.05*math.sin(11*tr+.5*ph))
+ if rc<=0:cliffp,cz=1.,1
+ elif rc<Lc:cliffp,cz=b+(1-b)*(1-stairs(rc/Lc,n,.3 if g>.5 else .22)),3
+ else:
+  u=(rc-Lc)/TALUS;cliffp=b*(1-u)**2 if u<1 else 0.;cz=4 if u<1 else 0
  p=smooth*(1-k)+cliffp*k
- return H*max(0,p),rt+L*(1-k)+Lc*k
-def hill_height(x,y):return max(hill_shape(x,y,hd)[0] for hd in HILL_DEFS)
+ h=H*max(0,p)+(lump*(1-k) if r>rt else 0)
+ foot=rt+L*(1-k)+(Lc+TALUS)*k
+ zone=0 if r>foot else 1 if r<=rt else (cz if k>.5 else 2)
+ return max(0,h),foot,zone
+def hill_info(x,y):
+ best=(0.,0)
+ for hd in HILL_DEFS:
+  h,foot,zone=hill_shape(x,y,hd)
+  if h>best[0] or (zone and not best[1]):best=(max(h,best[0]),zone if h>=best[0] else best[1])
+ return best
+def hill_height(x,y):return hill_info(x,y)[0]
 def on_hill(x,y,margin=0):
  for hd in HILL_DEFS:
-  h,foot=hill_shape(x,y,hd)
+  h,foot,zone=hill_shape(x,y,hd)
   if math.hypot(x-hd[1][0],y-hd[1][1])<foot+margin:return True
  return False
 def feature_height(x,y):return hill_height(x,y)
@@ -124,9 +162,9 @@ def river_profile(x,y):
  d=abs(x-river_x(y));w=river_half(y)
  return max(1-ss((d-w+3)/3),1-ss((math.hypot(x,y-4)-7)/3))
 def terrain(x,y):
- """Returns carved height, uncarved height, mountain height, cave index or -1, river profile, hill height."""
+ """Returns carved height, uncarved height, mountain height, cave index or -1, river profile, hill height, hill zone, grass tint."""
  fade=min(1,plot_clearance(x,y)/22);fade=fade*fade*(3-2*fade)
- m=mountain_height(x,y);hf=feature_height(x,y)
+ m=mountain_height(x,y);hf,zone=hill_info(x,y)
  orig=(base_height(x,y)+hf+m)*fade
  h=orig;cave=-1
  if y>60:
@@ -139,7 +177,7 @@ def terrain(x,y):
    if k>.5:cave=i
  rp=river_profile(x,y) if y>-14 and abs(x)<60 else 0
  if rp>0:h=min(h,-5*rp)
- return h,orig,m,cave,rp,hf*fade
+ return h,orig,m,cave,rp,hf*fade,zone if fade>.5 else 0,fbm(x/70,y/70,3,5)
 def height(x,y):return terrain(x,y)[0]
 def mesh(name,verts,faces,mat,smooth=False):
  SCENE.append(dict(name=name,v=verts,f=faces,mat=mat,smooth=smooth))
@@ -177,12 +215,18 @@ def ground_mat(c,size):
  if max(p[7] for p in c)>.3:return 'RiverBed'
  slope=(max(p[3] for p in c)-min(p[3] for p in c))/size
  if max(p[5] for p in c)>18 and slope>.75:return 'Rock'
- if max(p[8] for p in c)>3 and slope>1.3:return 'Rock'
+ zones=[p[9] for p in c];tint=sum(p[10] for p in c)/4
+ if max(p[8] for p in c)>2 and any(zones):
+  hmid=sum(p[3] for p in c)/4
+  if 3 in zones and slope>.9:return 'RockDark' if int((hmid+4*tint)/5)%2 else 'Rock'  # strata bands
+  if 4 in zones:return 'Scree'
+  if slope>1.6:return 'Rock'
+  if slope>1.35 and tint>.25:return 'Dirt'
  a=math.atan2(y,x);da=(a-BEACH_ANGLE+math.pi)%TAU-math.pi;r=math.hypot(x,y);rb=smooth_boundary(a)
  half=BEACH_HALF*(.82+.3*min(1,max(0,(r-RINNER)/(rb-RINNER))))
  if abs(da)<half and r>RINNER+9*math.cos(da/half*math.pi):
   t=(r-RINNER)/(rb-RINNER);return 'WetSand' if t>.93 else 'DrySand' if t>.68 else 'Sand'
- return 'Grass'
+ return 'GrassDark' if tint<-.22 else 'GrassLight' if tint>.25 else 'Grass'
 tiles={}
 for gx,gx2,gy,gy2 in CELLS:
   ks=[(gx,gy),(gx2,gy),(gx2,gy2),(gx,gy2)];c=[V[k] for k in ks]
@@ -210,7 +254,7 @@ for ci,c in enumerate(CAVES):
     if k not in idx:idx[k]=len(verts);verts.append((V[k][0],V[k][1],V[k][4]+.15))
     f.append(idx[k])
    slope=(max(q[4] for q in p)-min(q[4] for q in p))/(gx2-gx)
-   faces.append(tuple(f));mi.append('Rock' if (max(q[5] for q in p)>18 and slope>.75) or (max(q[8] for q in p)>3 and slope>1.3) else 'Grass')
+   faces.append(tuple(f));mi.append('Rock' if (max(q[5] for q in p)>18 and slope>.75) or (max(q[8] for q in p)>3 and slope>1.6) else 'Grass')
    faces.append(tuple(reversed(f)));mi.append('CaveRock')
  if faces:mesh('CaveRoof_%s'%('CentreHill' if ci==0 else 'Mountain%d'%ci),verts,faces,mi,True)
 # Continuous sculpted cliff skirt; no repeated block or ball cliff pieces.
@@ -413,10 +457,42 @@ hr=Batch('HillBoulders')
 for hd in HILL_DEFS:
  cx,cy=hd[1]
  for i in range(26):
-  th=hd[7]+deco.uniform(-62,62);h,foot=hill_shape(cx+math.cos(math.radians(th))*300,cy+math.sin(math.radians(th))*300,hd)
+  th=hd[7]+deco.uniform(-62,62);h,foot,zone=hill_shape(cx+math.cos(math.radians(th))*300,cy+math.sin(math.radians(th))*300,hd)
   rr=foot*deco.uniform(.93,1.12);x,y=cx+rr*math.cos(math.radians(th)),cy+rr*math.sin(math.radians(th))
   if plot_clearance(x,y)<8 or any(seg_dist(x,y,ca,cb)<hw+4 for ca,cb,hw,cr,fl in CAVES):continue
   w=deco.uniform(2.5,6);hr.put(ellipsoid,x,y,height(x,y)+w*.25,w,w*deco.uniform(.6,.9),w*deco.uniform(.5,.8),'Rock',8,5)
+# Rock outcrops poking out of the slopes, and bushes and small trees on the lower slopes.
+def hill_spot(hd,t0,t1,avoid_ramp):
+ name,(cx,cy),H,top,ramp,rl,sl,cliff,gully,ph=hd
+ for _ in range(200):
+  th=deco.uniform(0,360)
+  if angdiff(th,cliff)<70 or angdiff(th,ramp)<avoid_ramp:continue
+  h,foot,z=hill_shape(cx+300*math.cos(math.radians(th)),cy+300*math.sin(math.radians(th)),hd)
+  rr=top+(foot-top)*deco.uniform(t0,t1);x,y=cx+rr*math.cos(math.radians(th)),cy+rr*math.sin(math.radians(th))
+  if plot_clearance(x,y)<10 or hill_info(x,y)[1] not in (2,) :continue
+  if any(seg_dist(x,y,ca,cb)<hw+10 or math.hypot(x-cb[0],y-cb[1])<cr+10 for ca,cb,hw,cr,fl in CAVES):continue
+  if y>30 and abs(x-river_x(y))<river_half(y)+14:continue
+  return x,y
+plants=Batch('HillPlants')
+for hd in HILL_DEFS:
+ for i in range(6):
+  c=hill_spot(hd,.25,.85,22)
+  if c:x,y=c;w=deco.uniform(3.5,7.5);hr.put(ellipsoid,x,y,height(x,y)-w*.3,w,w*deco.uniform(.5,.8),w*deco.uniform(.35,.5),deco.choice(['Rock','RockDark']),9,5)
+ for i in range(9):
+  c=hill_spot(hd,.55,1.05,16)
+  if not c:continue
+  x,y=c
+  for k in range(deco.randint(2,3)):
+   bx,by=x+deco.uniform(-3,3),y+deco.uniform(-3,3);w=deco.uniform(2.6,4.4)
+   plants.put(ellipsoid,bx,by,height(bx,by)+w*.35,w,w*deco.uniform(.8,1.1),w*.7,deco.choice(['Bush','BushLight']),8,4)
+ for i in range(4):
+  c=hill_spot(hd,.6,1.0,20)
+  if not c:continue
+  x,y=c;z=min(height(x+dx,y+dy) for dx,dy in ((1.5,0),(-1.5,0),(0,1.5),(0,-1.5)));h=deco.uniform(11,15)
+  plants.put(box,x,y,z+h/2-.5,2.2,2.2,h+1,deco.uniform(0,90),'Bark')
+  plants.put(ellipsoid,x,y,z+h,deco.uniform(8,10),deco.uniform(8,10),deco.uniform(7,9),deco.choice(['Leaf','LeafLight']))
+  plants.put(ellipsoid,x+deco.uniform(-4,4),y+deco.uniform(-4,4),z+h-2.5,6,6,5,'Leaf',7,4)
+plants.emit()
 hr.emit()
 for b in QUAD.values():b.emit()
 
@@ -442,6 +518,11 @@ if bpy:
   for n in names:data.materials.append(mats[n])
   for i,poly in enumerate(data.polygons):
    poly.use_smooth=ob['smooth'];poly.material_index=names.index(ob['mat'][i]) if isinstance(ob['mat'],list) else 0
+  if ob['smooth']:
+   try:data.set_sharp_from_angle(angle=math.radians(55))  # Blender 4.1+
+   except AttributeError:
+    try:data.use_auto_smooth=True;data.auto_smooth_angle=math.radians(55)
+    except AttributeError:pass
  # Dedicated camera and lighting; existing objects are preserved.
  scene=bpy.context.scene;camdata=bpy.data.cameras.new('OF_Overview');cam=bpy.data.objects.new('OF_Overview',camdata);col.objects.link(cam)
  cam.location=(1040,1180,1150);target=Vector((20,0,0));cam.rotation_euler=(target-cam.location).to_track_quat('-Z','Y').to_euler();camdata.type='ORTHO';camdata.ortho_scale=1400;scene.camera=cam
@@ -461,17 +542,54 @@ else:
  # OBJ/MTL are generated from the same scene data used above, not approximated concept art.
  with open(OUT/'OreFactory_SmoothTerrain.mtl','w') as f:
   for n,c in MATS.items():f.write('newmtl '+n+'\nKd '+' '.join(map(str,c))+'\nKa 0.1 0.1 0.1\nd 1\n\n')
+ def corner_normals(objs,angle=55,split=False):
+  """Per-face-corner normals, smoothed across faces within `angle` (shared by position,
+  so ground tiles shade seamlessly). split keeps opposite-facing faces apart (double-sided roofs)."""
+  acc={};fns=[]
+  for ob in objs:
+   vs=ob['v'];fl=[]
+   for fc in ob['f']:
+    nx=ny=nz=0.
+    for i in range(len(fc)):
+     x1,y1,z1=vs[fc[i]];x2,y2,z2=vs[fc[(i+1)%len(fc)]];nx+=(y1-y2)*(z1+z2);ny+=(z1-z2)*(x1+x2);nz+=(x1-x2)*(y1+y2)
+    fl.append((nx,ny,nz))
+    for q in fc:
+     key=(round(vs[q][0],3),round(vs[q][1],3),round(vs[q][2],3),nz>=0 if split else 0);a=acc.setdefault(key,[0.,0.,0.]);a[0]+=nx;a[1]+=ny;a[2]+=nz
+   fns.append(fl)
+  cosa=math.cos(math.radians(angle));out=[]
+  for ob,fl in zip(objs,fns):
+   vs=ob['v'];res=[]
+   for fc,n in zip(ob['f'],fl):
+    l=math.sqrt(n[0]**2+n[1]**2+n[2]**2) or 1.;nf=(n[0]/l,n[1]/l,n[2]/l);cs=[]
+    for q in fc:
+     a=acc[(round(vs[q][0],3),round(vs[q][1],3),round(vs[q][2],3),n[2]>=0 if split else 0)];l=math.sqrt(a[0]**2+a[1]**2+a[2]**2) or 1.
+     va=(a[0]/l,a[1]/l,a[2]/l);cs.append(va if va[0]*nf[0]+va[1]*nf[1]+va[2]*nf[2]>cosa else nf)
+    res.append(cs)
+   out.append(res)
+  return out
+ NORMALS={}
+ smooth_objs=[ob for ob in SCENE if ob['smooth']]
+ groups=[[ob for ob in smooth_objs if ob['name'].startswith('Ground_')]]+[[ob] for ob in smooth_objs if not ob['name'].startswith('Ground_')]
+ for grp in groups:
+  for ob,res in zip(grp,corner_normals(grp,split=grp[0]['name'].startswith('CaveRoof'))):NORMALS[ob['name']]=res
  with open(OUT/'OreFactory_SmoothTerrain.obj','w') as f:
-  f.write('mtllib OreFactory_SmoothTerrain.mtl\n');offset=1
+  f.write('mtllib OreFactory_SmoothTerrain.mtl\n');offset=1;noff=1
   for ob in SCENE:
    f.write('o '+ob['name']+'\n')
    for v in ob['v']:f.write('v %.5f %.5f %.5f\n'%tuple(v))
+   cn=NORMALS.get(ob['name']);nidx={}
+   if cn:
+    for cs in cn:
+     for nv in cs:
+      key=(round(nv[0],3),round(nv[1],3),round(nv[2],3))
+      if key not in nidx:nidx[key]=noff+len(nidx);f.write('vn %.3f %.3f %.3f\n'%key)
    current=None
    for i,face in enumerate(ob['f']):
     mat=ob['mat'][i] if isinstance(ob['mat'],list) else ob['mat']
     if mat!=current:f.write('usemtl '+mat+'\n');current=mat
-    f.write('f '+' '.join(str(q+offset) for q in face)+'\n')
-   offset+=len(ob['v'])
+    if cn:f.write('f '+' '.join('%d//%d'%(q+offset,nidx[(round(nv[0],3),round(nv[1],3),round(nv[2],3))]) for q,nv in zip(face,cn[i]))+'\n')
+    else:f.write('f '+' '.join(str(q+offset) for q in face)+'\n')
+   offset+=len(ob['v']);noff+=len(nidx)
  print('Exported',len(SCENE),'objects')
  import json
  (OUT/'mesh_scene.json').write_text(json.dumps(SCENE))

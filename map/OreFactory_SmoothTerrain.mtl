@@ -4,7 +4,7 @@ Ka 0.1 0.1 0.1
 d 1
 
 newmtl GrassLight
-Kd 0.37 0.52 0.26
+Kd 0.35 0.5 0.24
 Ka 0.1 0.1 0.1
 d 1
 
@@ -140,6 +140,26 @@ d 1
 
 newmtl Coconut
 Kd 0.35 0.24 0.13
+Ka 0.1 0.1 0.1
+d 1
+
+newmtl GrassDark
+Kd 0.29 0.44 0.2
+Ka 0.1 0.1 0.1
+d 1
+
+newmtl Dirt
+Kd 0.45 0.36 0.24
+Ka 0.1 0.1 0.1
+d 1
+
+newmtl Scree
+Kd 0.5 0.48 0.44
+Ka 0.1 0.1 0.1
+d 1
+
+newmtl RockDark
+Kd 0.3 0.31 0.29
 Ka 0.1 0.1 0.1
 d 1
 

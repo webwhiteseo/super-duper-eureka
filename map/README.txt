@@ -1,6 +1,16 @@
-ORE FACTORY — BLENDER TERRAIN (v6)
+ORE FACTORY — BLENDER TERRAIN (v7)
 
 CHANGES IN THIS VERSION
+NEW IN v7 (more natural hills)
+- Irregular outlines, rounded shoulders, long concave feet instead of cone shapes.
+- Spurs and gullies run down the slopes; gentle lumps and bumps (none on the flat tops).
+- Cliffs: wavy rock faces with strata bands, a scree apron at the base, boulders.
+- Rock outcrops on the slopes; bushes and small trees on the lower slopes.
+- Subtle grass colour variation across the map; dirt patches on the steepest grass.
+- OBJ now has smooth-by-angle normals: slopes shade smoothly, cliff edges stay sharp.
+- Ramps still walkable (no step over 50 degrees).
+- New previews: OreFactory_PlayerView_Front / _West (player height, with shadows).
+
 NEW IN v6
 - Both hills 30% taller: centre hill 47 studs, tall hill 61 studs. Ramps lengthened so they stay walkable (about 43 degrees).
 - Cliff ledge routes gain extra steps automatically (still ~5 studs each).
