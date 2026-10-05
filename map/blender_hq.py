@@ -69,6 +69,7 @@ SPEC={
  'Sand':('noise',(.70,.60,.40),(.86,.77,.57),.95,.25,.6),'DrySand':('noise',(.80,.71,.52),(.93,.86,.68),.95,.25,.6),
  'WetSand':('noise',(.48,.43,.31),(.62,.57,.43),.5,.2,.6),'RiverBed':('voronoi',(.30,.27,.21),(.48,.44,.36),.9,.6,.5),
  'Concrete':('noise',(.50,.50,.47),(.66,.66,.62),.9,.15,.4),'Spawn':('noise',(.58,.60,.52),(.70,.72,.64),.8,.1,.4),
+ 'CastleStone':('voronoi',(.07,.068,.065),(.12,.115,.11),.9,.6,.4),'CastleStoneDark':('voronoi',(.04,.038,.036),(.07,.067,.064),.9,.6,.4),
  'Stone':('voronoi',(.36,.35,.32),(.52,.50,.46),.85,.6,.5),'StoneDark':('voronoi',(.24,.23,.22),(.36,.35,.32),.85,.6,.5),
  'Wood':('wave',(.32,.20,.10),(.55,.37,.20),.75,.3,.6),'WoodDark':('wave',(.16,.10,.05),(.32,.21,.12),.75,.3,.6),
  'RoofWood':('wave',(.24,.12,.07),(.44,.24,.13),.8,.3,.6),'Bark':('wave',(.15,.10,.06),(.30,.21,.13),.9,.6,.8),
@@ -142,7 +143,7 @@ for name,o in objs.items():
  o.modifiers.move(len(o.modifiers)-1,0)
 # ---------- 4. Bevel built objects ----------
 for name,o in objs.items():
- if name in ('SummitTower','WoodenBridge','StonePath') or name.startswith('Lantern_') or name.startswith('Plot_') or name=='CentralSpawn':
+ if name in ('WoodenBridge','StonePath') or name.startswith('Lantern_') or name.startswith('Plot_') or name=='CentralSpawn':
   b=o.modifiers.new('Bevel','BEVEL');b.width=.1;b.segments=2;b.limit_method='ANGLE';b.harden_normals=False
 
 # ---------- 5. Low-poly pine and oak trees replace the ball trees ----------
@@ -271,7 +272,7 @@ scene.render.resolution_x,scene.render.resolution_y=RES;scene.render.resolution_
 
 CAMS={PREFIX+'Overview':((430,640,430),(30,-30,0),40),PREFIX+'Bridge':((-8,268,18),(0,-25,30),58),
       PREFIX+'West':((-205,70,14),(0,-35,30),62),PREFIX+'SummitPath':((14,4,52),(0,-70,64),60),
-      PREFIX+'Tower':((34,-22,70),(0,-67,78),50)}
+      PREFIX+'Tower':((90,10,95),(0,-70,100),55),PREFIX+'TowerInside':((0,-70,64),(0,-58,80),80)}
 def cam(name,loc,target,fov):
  cd=bpy.data.cameras.new(name);cd.lens_unit='FOV';cd.angle=math.radians(fov);cd.clip_end=5000
  c=bpy.data.objects.new(name,cd);col.objects.link(c);c.location=loc

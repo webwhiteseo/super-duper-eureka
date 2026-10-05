@@ -14,7 +14,7 @@ MATS.update({'DrySand':(.88,.79,.60),'WetSand':(.64,.60,.44),'CaveRock':(.27,.27
 MATS.update({'Wood':(.50,.34,.20),'WoodDark':(.30,.20,.12),'Iron':(.16,.16,.17),'LanternGlow':(1.0,.78,.42),'Bush':(.22,.40,.17),'BushLight':(.30,.48,.20),
  'TallGrass':(.40,.56,.24),'TallGrassDry':(.58,.60,.30),'FlowerRed':(.86,.24,.22),'FlowerYellow':(.96,.80,.22),'FlowerWhite':(.94,.93,.88),'FlowerPurple':(.58,.38,.80),
  'PalmTrunk':(.55,.42,.27),'PalmLeaf':(.25,.52,.20),'Coconut':(.35,.24,.13),
- 'GrassDark':(.29,.44,.20),'Stone':(.56,.55,.51),'StoneDark':(.43,.42,.39),'Gravel':(.48,.46,.42),'RoofWood':(.40,.22,.14),'RoofTile':(.42,.13,.10),'Banner':(.55,.07,.07),'Gold':(.85,.64,.18),'Dirt':(.45,.36,.24),'Scree':(.50,.48,.44),'RockDark':(.30,.31,.29)})
+ 'GrassDark':(.29,.44,.20),'Stone':(.56,.55,.51),'StoneDark':(.43,.42,.39),'Gravel':(.48,.46,.42),'RoofWood':(.40,.22,.14),'RoofTile':(.42,.13,.10),'Banner':(.55,.07,.07),'CastleStone':(.16,.155,.15),'CastleStoneDark':(.10,.096,.093),'Gold':(.85,.64,.18),'Dirt':(.45,.36,.24),'Scree':(.50,.48,.44),'RockDark':(.30,.31,.29)})
 SCENE=[];random.seed(37)
 def boundary(a):
  c,s=math.cos(a),math.sin(a);roots=[]
@@ -56,7 +56,7 @@ def ss(t):t=min(1,max(0,t));return t*t*(3-2*t)
 # (name, centre, height, top radius, ramp dir, ramp length, side-slope length, cliff dir, gully dir, phase)
 SMALL_H=36*1.3  # v6: both hills 30% taller (centre 46.8, tall 60.8)
 HILL_DEFS=[('Centre',(0,0),SMALL_H,26,180,76,64,0,32,.4),
-           ('Tall',(0,-62),SMALL_H*1.3,18,0,98,80,180,206,2.1)]
+           ('Tall',(0,-62),SMALL_H*1.3,26,0,98,80,180,206,2.1)]
 SMALL_TOP=26
 # Mountains on the left and right sides: (x, y, height, spread).
 MOUNTAINS=[(592,48,78,52),(492,-214,62,46),(-420,-212,66,48),(-386,186,56,44)]
@@ -142,7 +142,7 @@ def hill_info(x,y):
  return best
 # Dirt path between the two flat tops: graded walkway, cut and filled into the slopes.
 PATH_A,PATH_B,PATH_W=(0,-16),(0,-52),4.5
-TX,TY=0,-67  # summit tower
+TX,TY=0,-70  # summit castle keep
 def path_info(x,y):
  """Returns (blend 0..1, path height) for the summit path."""
  ay,by=PATH_A[1],PATH_B[1];s=(ay-y)/(ay-by)
@@ -395,7 +395,7 @@ for ci,(a,b,hw,cr,floor) in enumerate(CAVES[1:],1):
 def grassy(x,y,margin):
  a=math.atan2(y,x);r=math.hypot(x,y)
  if r>smooth_boundary(a)-8:return False
- if any(path_info(x+dx,y)[0]>0 for dx in (-7,0,7)) or math.hypot(x-TX,y-TY)<14:return False
+ if any(path_info(x+dx,y)[0]>0 for dx in (-7,0,7)) or math.hypot(x-TX,y-TY)<24:return False
  hh=hill_height(x,y)
  if any(hh>hd[2]-.5 and math.hypot(x-hd[1][0],y-hd[1][1])<hd[3]+4 for hd in HILL_DEFS):return False
  if abs(height(x+1.5,y)-height(x-1.5,y))>2.2 or abs(height(x,y+1.5)-height(x,y-1.5))>2.2:return False
@@ -487,7 +487,7 @@ def hill_spot(hd,t0,t1,avoid_ramp):
   if angdiff(th,cliff)<70 or angdiff(th,ramp)<avoid_ramp:continue
   h,foot,z=hill_shape(cx+300*math.cos(math.radians(th)),cy+300*math.sin(math.radians(th)),hd)
   rr=top+(foot-top)*deco.uniform(t0,t1);x,y=cx+rr*math.cos(math.radians(th)),cy+rr*math.sin(math.radians(th))
-  if plot_clearance(x,y)<10 or hill_info(x,y)[1] not in (2,) or math.hypot(x-TX,y-TY)<22:continue
+  if plot_clearance(x,y)<10 or hill_info(x,y)[1] not in (2,) or math.hypot(x-TX,y-TY)<32:continue
   if any(path_info(x+dx,y)[0]>0 for dx in (-7,0,7)):continue
   if any(seg_dist(x,y,ca,cb)<hw+10 or math.hypot(x-cb[0],y-cb[1])<cr+10 for ca,cb,hw,cr,fl in CAVES):continue
   if y>30 and abs(x-river_x(y))<river_half(y)+14:continue
@@ -527,9 +527,9 @@ while y>by:
  y-=2.5
 stones.emit()
 
-# ---------- Medieval keep on the tall-hill top, door facing the path ----------
-# Round stone keep with a flared base, stone courses, corbelled battlements, a tall
-# conical roof, a side turret, arrow slits, banners and torches. Door faces the path (+Y).
+# ---------- Medieval keep on the tall-hill top (enterable), door facing the path ----------
+# Dark stone, 26 studs wide, hollow inside: open doorway, spiral stairs up the inside wall,
+# a roofed lookout deck with battlements at the top, torches inside and out.
 def prism(cx,cy,z0,z1,r0,r1,n=10,rot=0.,cap=True):
  a=[rot+2*math.pi*i/n for i in range(n)]
  v=[(cx+r0*math.cos(t),cy+r0*math.sin(t),z0) for t in a]+[(cx+r1*math.cos(t),cy+r1*math.sin(t),z1) for t in a]
@@ -539,52 +539,88 @@ def prism(cx,cy,z0,z1,r0,r1,n=10,rot=0.,cap=True):
 def cone(cx,cy,z0,z1,r,n=10,rot=0.):
  v=[(cx+r*math.cos(rot+2*math.pi*i/n),cy+r*math.sin(rot+2*math.pi*i/n),z0) for i in range(n)]+[(cx,cy,z1)]
  return v,[(i,(i+1)%n,n) for i in range(n)]+[tuple(range(n-1,-1,-1))]
-R,KH,N=6.5,28,10;ROT=math.pi/2/N*0  # keep radius, wall height, sides
-tz=min(height(TX+R*1.3*math.cos(t),TY+R*1.3*math.sin(t)) for t in [k*math.pi/4 for k in range(8)])
+def ring(cx,cy,z0,z1,ro0,ro1,ri,n,rot,skip=()):
+ """Hollow wall: closed box per segment (outer, inner, top, bottom, ends), segments in skip left open."""
+ V=[];F=[]
+ for i in range(n):
+  if i in skip:continue
+  a0,a1=rot+2*math.pi*i/n,rot+2*math.pi*(i+1)/n;o=len(V)
+  for a in (a0,a1):
+   c,s_=math.cos(a),math.sin(a)
+   V+=[(cx+ro0*c,cy+ro0*s_,z0),(cx+ri*c,cy+ri*s_,z0),(cx+ri*c,cy+ri*s_,z1),(cx+ro1*c,cy+ro1*s_,z1)]
+  # verts per end: 0 outer-bottom,1 inner-bottom,2 inner-top,3 outer-top
+  F+=[(o,o+4,o+7,o+3),(o+1,o+2,o+6,o+5),(o+3,o+7,o+6,o+2),(o,o+1,o+5,o+4),(o,o+3,o+2,o+1),(o+4,o+5,o+6,o+7)]
+ return V,F
+R,WT,KH,N=13,1.8,56,16;RI=R-WT
+ROT=math.pi/2-math.pi/N  # segment 0 is centred on +Y (door side)
+tz=max(height(TX+R*math.cos(t),TY+R*math.sin(t)) for t in [k*math.pi/8 for k in range(16)])
+fl=tz+1  # ground-floor level
 tw=Batch('SummitTower')
-tw.add(*prism(TX,TY,tz-2,tz+1,R+3.2,R+2.6,N),'StoneDark')            # foundation
-tw.add(*prism(TX,TY,tz+1,tz+5,R+2.6,R,N),'StoneDark')                # flared (battered) base
-z=tz+5;k=0
-while z<tz+KH:                                                        # stone courses, alternating tones
- h=min(2.2,tz+KH-z);tw.add(*prism(TX,TY,z,z+h,R-(.02 if k%2 else 0),R-(.02 if k%2 else 0),N,(k%2)*math.pi/N*.08),'Stone' if k%3 else 'StoneDark');z+=h;k+=1
-zt=tz+KH
-for i in range(N*2):                                                  # corbels under the parapet
- t=2*math.pi*i/(N*2);tw.put(box,TX+(R+.5)*math.cos(t),TY+(R+.5)*math.sin(t),zt-.6,1.2,1.0,1.6,-math.degrees(t),'StoneDark')
-tw.add(*prism(TX,TY,zt,zt+1.2,R+1.4,R+1.4,N),'StoneDark')            # parapet floor ring
-tw.add(*prism(TX,TY,zt+1.2,zt+2.8,R+1.4,R+1.4,N),'Stone')            # parapet wall
-for i in range(N*2):                                                  # merlons (battlements)
+tw.add(*prism(TX,TY,tz-6,fl,R+3.5,R+3.5,N,ROT),'CastleStoneDark')           # foundation / ground floor slab
+tw.add(*ring(TX,TY,fl,fl+7,R+2.6,R,RI,N,ROT,skip=(0,)),'CastleStoneDark')   # flared base, door gap
+z=fl+7;k=0
+while z<fl+KH-.01:                                                           # stone courses
+ h=min(3.0,fl+KH-z);door=(0,) if z<fl+11 else ()
+ tw.add(*ring(TX,TY,z,z+h,R,R,RI,N,ROT,skip=door),'CastleStone' if k%3 else 'CastleStoneDark');z+=h;k+=1
+zt=fl+KH
+# door arch above the opening
+dw=2*R*math.sin(math.pi/N)
+for j,(dx,dz) in enumerate([(-dw/2,10.6),(-dw/4,11.4),(0,11.7),(dw/4,11.4),(dw/2,10.6)]):tw.put(box,TX+dx,TY+R+.3,fl+dz,1.6,1.6,1.2,0,'CastleStoneDark')
+for sx in (-1,1):tw.put(box,TX+sx*(dw/2+.2),TY+R+.4,fl+5.3,1.4,2.0,10.6,0,'CastleStoneDark')
+# spiral stairs up the inside wall (1-stud steps), ending at the top deck
+STEP_A=2.4/9.6;n_steps=int(round(KH));a0=math.pi/2+.9
+for i in range(n_steps):
+ a=a0+i*STEP_A;rm=RI-2.2
+ tw.put(box,TX+rm*math.cos(a),TY+rm*math.sin(a),fl+i+.5,4.4,2.6,1.0,-math.degrees(a)+90,'CastleStoneDark')
+ if i%3==0:tw.put(box,TX+(RI-4.6)*math.cos(a),TY+(RI-4.6)*math.sin(a),fl+i+1.6,.35,.35,2.2,0,'WoodDark')  # rail posts
+end_a=a0+(n_steps-1)*STEP_A
+# top deck with a hole over the last stairs
+hole=set()
+for i in range(N):
+ mid=ROT+2*math.pi*(i+.5)/N;d=(end_a-mid)%(2*math.pi)
+ if d<2.5 or d>2*math.pi-.25:hole.add(i)
+for i in range(N):
+ if i in hole:continue
+ a_0,a_1=ROT+2*math.pi*i/N,ROT+2*math.pi*(i+1)/N
+ v=[(TX,TY,zt-1),(TX+RI*math.cos(a_0),TY+RI*math.sin(a_0),zt-1),(TX+RI*math.cos(a_1),TY+RI*math.sin(a_1),zt-1)];v+=[(x,y,zt) for x,y,_ in v]
+ tw.add(v,[(0,2,1),(3,4,5),(1,2,5,4),(0,1,4,3),(0,3,5,2)],'Wood')
+# corbels, parapet and battlements
+for i in range(N*2):
+ t=2*math.pi*i/(N*2);tw.put(box,TX+(R+.6)*math.cos(t),TY+(R+.6)*math.sin(t),zt-1.2,1.6,1.4,2.4,-math.degrees(t),'CastleStoneDark')
+tw.add(*ring(TX,TY,zt,zt+1,R+1.8,R+1.8,RI,N,ROT),'CastleStoneDark')
+tw.add(*ring(TX,TY,zt+1,zt+4,R+1.8,R+1.8,R+.2,N,ROT),'CastleStone')
+for i in range(N*2):
  if i%2:continue
- t=2*math.pi*(i+.5)/(N*2);tw.put(box,TX+(R+1.1)*math.cos(t),TY+(R+1.1)*math.sin(t),zt+3.8,2.1,1.0,2.0,-math.degrees(t)+90,'Stone')
-tw.add(*cone(TX,TY,zt+2.6,zt+15,R+.6,N),'RoofTile')                  # tall conical roof
-tw.add(*prism(TX,TY,zt+2.4,zt+3.0,R+1.0,R+.7,N),'RoofWood')          # roof eave
-tw.put(box,TX,TY,zt+16.5,.35,.35,4,0,'Iron')                          # finial + flag
-tw.add([(TX+.2,TY,zt+18.4),(TX+.2,TY,zt+17.0),(TX+2.2,TY+.5,zt+17.3),(TX+3.8,TY,zt+17.7),(TX+3.8,TY,zt+18.9),(TX+2.2,TY+.5,zt+18.6)],[(0,1,2,5),(5,2,3,4),(5,4,3,2),(5,2,1,0)],'Banner')
-# side turret (front-left), with its own roof and battlements
+ t=2*math.pi*(i+.5)/(N*2);tw.put(box,TX+(R+1)*math.cos(t),TY+(R+1)*math.sin(t),zt+5.2,3.0,1.6,2.4,-math.degrees(t)+90,'CastleStone')
+# roof on pillars over the deck (players walk under it), tall cone
+for i in range(6):
+ t=2*math.pi*(i+.5)/6;tw.put(box,TX+(RI-1.2)*math.cos(t),TY+(RI-1.2)*math.sin(t),zt+6,1.6,1.6,12,-math.degrees(t),'CastleStoneDark')
+tw.add(*prism(TX,TY,zt+12,zt+13.2,R+2.4,R+2.0,N,ROT),'RoofWood')
+tw.add(*cone(TX,TY,zt+13,zt+40,R+2.2,N,ROT),'RoofTile')
+tw.put(box,TX,TY,zt+43,.6,.6,7,0,'Iron')
+fz=zt+44.5;tw.add([(TX+.3,TY,fz+2.4),(TX+.3,TY,fz),(TX+3.8,TY+.8,fz+.5),(TX+7,TY,fz+1),(TX+7,TY,fz+3.2),(TX+3.8,TY+.8,fz+2.9)],[(0,1,2,5),(5,2,3,4),(5,4,3,2),(5,2,1,0)],'Banner')
+# side turret (front-left), solid
 ux,uy=TX+R*.95*math.cos(math.radians(150)),TY+R*.95*math.sin(math.radians(150))
-tw.add(*prism(ux,uy,tz+3,zt+5,2.4,2.2,8),'Stone')
+tw.add(*prism(ux,uy,fl+4,zt+10,4.8,4.4,8),'CastleStone')
 for i in range(8):
  if i%2:continue
- t=2*math.pi*(i+.5)/8;tw.put(box,ux+2.3*math.cos(t),uy+2.3*math.sin(t),zt+5.7,1.1,.7,1.4,-math.degrees(t)+90,'StoneDark')
-tw.add(*cone(ux,uy,zt+5.2,zt+12.5,2.9,8),'RoofTile')
-# door: stone arch frame, dark wood door with iron bands, steps
-fy=TY+R+.25
-for sx in (-1,1):tw.put(box,TX+sx*2.3,fy,tz+5+3.2,1.2,1.2,6.4,0,'StoneDark')
-for j,(dx,dz) in enumerate([(-1.8,6.9),(-1.0,7.5),(0,7.8),(1.0,7.5),(1.8,6.9)]):tw.put(box,TX+dx,fy,tz+5+dz,1.2,1.2,1.0,0,'StoneDark')
-tw.put(box,TX,fy-.05,tz+5+3.3,3.4,.6,6.6,0,'WoodDark')
-for dz in (1.6,4.6):tw.put(box,TX,fy+.3,tz+5+dz,3.4,.15,.35,0,'Iron')
-tw.put(box,TX+1.0,fy+.35,tz+5+3.2,.3,.2,.3,0,'Iron')
-for st in range(3):tw.put(box,TX,TY+R+1.2+st*1.4,tz+5-1.2-st*1.3,5.4,1.6,1.4,0,'StoneDark')
-# arrow slits (some lit), banners on the front
-for i,(ang,zz,lit) in enumerate([(90,15,1),(90,22,0),(30,12,0),(150,12,1),(210,18,1),(330,18,0),(270,24,1),(0,21,0),(180,24,0)]):
- t=math.radians(ang);tw.put(box,TX+(R+.05)*math.cos(t),TY+(R+.05)*math.sin(t),tz+zz,.6,.5,2.4,-ang+90,'LanternGlow' if lit else 'Iron')
+ t=2*math.pi*(i+.5)/8;tw.put(box,ux+4.6*math.cos(t),uy+4.6*math.sin(t),zt+11.4,2.2,1.4,2.8,-math.degrees(t)+90,'CastleStoneDark')
+tw.add(*cone(ux,uy,zt+10.4,zt+25,5.8,8),'RoofTile')
+# arrow slits (some lit) and banners
+for i,(ang,zz,lit) in enumerate([(90,24,1),(90,40,0),(30,20,0),(150,30,1),(210,34,1),(330,26,0),(270,44,1),(0,38,0),(180,46,0),(60,48,1),(120,16,0)]):
+ t=math.radians(ang);tw.put(box,TX+(R+.05)*math.cos(t),TY+(R+.05)*math.sin(t),fl+zz,1.0,.8,4.4,-ang+90,'LanternGlow' if lit else 'Iron')
 for sx in (-1,1):
- t=math.radians(90+sx*36);bx,by=TX+(R+.12)*math.cos(t),TY+(R+.12)*math.sin(t)
- tw.put(box,bx,by,tz+19,2.4,.15,7,-math.degrees(t)+90,'Banner')
- tw.put(box,bx+.01*math.cos(t),by+.01*math.sin(t),tz+19.5,.6,.17,4.5,-math.degrees(t)+90,'Gold')
- tw.put(box,bx,by,tz+22.7,3,.3,.3,-math.degrees(t)+90,'WoodDark')
+ t=math.radians(90+sx*34);bx,by=TX+(R+.15)*math.cos(t),TY+(R+.15)*math.sin(t)
+ tw.put(box,bx,by,fl+34,4.6,.2,14,-math.degrees(t)+90,'Banner')
+ tw.put(box,bx+.02*math.cos(t),by+.02*math.sin(t),fl+35,1.1,.22,9,-math.degrees(t)+90,'Gold')
+ tw.put(box,bx,by,fl+41.3,5.8,.5,.5,-math.degrees(t)+90,'WoodDark')
 tw.emit()
-DOOR,S=6.2,2*R
-for sx in (-1,1):lantern('Lantern_Tower_%s'%('W' if sx<0 else 'E'),TX+sx*4.2,TY+R+5.2,height(TX+sx*4.2,TY+R+5.2))
+# torches inside (lit by OreFactory_Lighting.lua: names Lantern_*_Glow)
+for k,i in enumerate(range(6,n_steps,12)):
+ a=a0+i*STEP_A+STEP_A*2;x,y=TX+(RI-.4)*math.cos(a),TY+(RI-.4)*math.sin(a)
+ box('Lantern_TowerIn%02d_Glow'%k,x,y,fl+i+4.5,1.0,1.0,1.4,-math.degrees(a),'LanternGlow')
+R_OUT=R+3.5
+for sx in (-1,1):lantern('Lantern_Tower_%s'%('W' if sx<0 else 'E'),TX+sx*5.5,TY+R_OUT+2.5,height(TX+sx*5.5,TY+R_OUT+2.5))
 for b in QUAD.values():b.emit()
 
 # No tall grass and no bushes (removed on request). Generated above so the rest of the layout
