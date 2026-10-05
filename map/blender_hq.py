@@ -14,6 +14,8 @@ def arg(name,default,n=1,cast=int):
  if name in args:
   i=args.index(name);v=[cast(a) for a in args[i+1:i+1+n]];return v if n>1 else v[0]
  return default
+LOWPOLY='--lowpoly' in args  # faceted low-poly look: triangles, flat shading, flat colours
+PREFIX='LP_' if LOWPOLY else 'HQ_'
 SAMPLES=arg('--samples',128);RES=arg('--res',[1920,1080],2);ONLY=arg('--only',None,cast=str)
 random.seed(7)
 
@@ -29,6 +31,10 @@ def node_mat(name,kind,c1,c2,rough=.85,bump=.3,scale=.25,extra=None):
  m=bpy.data.materials.get('OF_'+name) or bpy.data.materials.new('OF_'+name)
  m.use_nodes=True;nt=m.node_tree;nt.nodes.clear();N=nt.nodes.new;L=nt.links.new
  out=N('ShaderNodeOutputMaterial');bs=N('ShaderNodeBsdfPrincipled');L(bs.outputs[0],out.inputs[0])
+ if LOWPOLY:  # one flat colour per material
+  bs.inputs['Base Color'].default_value=(*[(a+b)/2 for a,b in zip(c1,c2)],1);bs.inputs['Roughness'].default_value=max(rough,.7)
+  if extra:extra(nt,bs)
+  return m
  tc=N('ShaderNodeTexCoord');src=tc.outputs['Object']
  if kind=='voronoi':tex=N('ShaderNodeTexVoronoi');tex.inputs['Scale'].default_value=scale;fac=tex.outputs['Distance']
  elif kind=='wave':tex=N('ShaderNodeTexWave');tex.inputs['Scale'].default_value=scale;tex.inputs['Distortion'].default_value=6;fac=tex.outputs['Fac']
@@ -87,7 +93,31 @@ def slope_weight(x,y):
  h,zone=hill_info(x,y)
  if zone in (2,3,4):return 1.
  return 1. if mountain_height(x,y)>8 else 0.
-for name,o in objs.items():
+if LOWPOLY:
+ # One ground mesh (so decimation leaves no cracks between tiles), chunky slope detail,
+ # then collapse into irregular triangles with flat shading. Edges are kept in place.
+ import bmesh
+ tiles=[o for n,o in objs.items() if n.startswith('Ground_')]
+ with bpy.context.temp_override(active_object=tiles[0],object=tiles[0],selected_objects=tiles,selected_editable_objects=tiles):bpy.ops.object.join()
+ gnd=tiles[0];gnd.name='Ground_LowPoly';objs={o.name:o for o in col.objects}
+ for o in col.objects:
+  if o.type=='MESH':
+   for p in o.data.polygons:p.use_smooth=False
+ for name,o in objs.items():
+  if not (name.startswith('Ground_') or name.startswith('Cliff_') or name.startswith('CaveRoof_')):continue
+  me=o.data;bm=bmesh.new();bm.from_mesh(me);bm.verts.ensure_lookup_table()
+  edge=[v.index for v in bm.verts if any(e.is_boundary for e in v.link_edges)];bm.free()
+  keep=o.vertex_groups.new(name='Decimate');keep.add(list(range(len(me.vertices))),1.,'REPLACE');keep.add(edge,0.,'REPLACE')
+  if name.startswith('Ground_'):
+   vg=o.vertex_groups.new(name='Slopes')
+   for i,v in enumerate(me.vertices):
+    w=slope_weight(v.co.x,v.co.y)
+    if w>0:vg.add([i],w,'REPLACE')
+   d=o.modifiers.new('SlopeDetail','DISPLACE');d.texture=clouds;d.strength=3.5;d.vertex_group='Slopes';d.texture_coords='GLOBAL'
+  if name.startswith('CaveRoof_'):continue
+  dm=o.modifiers.new('LowPoly','DECIMATE');dm.decimate_type='COLLAPSE';dm.ratio=.1 if name.startswith('Ground_') else .3
+  dm.use_collapse_triangulate=True;dm.vertex_group='Decimate';dm.vertex_group_factor=1.
+for name,o in ([] if LOWPOLY else objs.items()):
  if not (name.startswith('Ground_') or name.startswith('CaveRoof_') or name.startswith('Cliff_')):continue
  me=o.data
  try:me.set_sharp_from_angle(angle=math.radians(40))
@@ -197,7 +227,7 @@ def scatter_group():
   ms=N('GeometryNodeMaterialSelection');ms.inputs['Material'].default_value=bpy.data.materials['OF_'+mname]
   if sel is None:sel=ms.outputs[0]
   else:o=N('FunctionNodeBooleanMath');o.operation='OR';L(sel,o.inputs[0]);L(ms.outputs[0],o.inputs[1]);sel=o.outputs[0]
- for coll,density,smin,smax,seed in ((flower_col,.006,.8,1.3,2),(pebble_col,.01,.6,1.6,3)):  # no grass scatter
+ for coll,density,smin,smax,seed in ((flower_col,.006,.8,1.3,2),)+(() if LOWPOLY else ((pebble_col,.01,.6,1.6,3),)):  # no grass scatter
   dp=N('GeometryNodeDistributePointsOnFaces');dp.inputs['Density'].default_value=density;dp.inputs['Seed'].default_value=seed
   L(gi.outputs[0],dp.inputs['Mesh']);L(sel,dp.inputs['Selection'])
   ci=N('GeometryNodeCollectionInfo');ci.inputs['Collection'].default_value=coll;ci.inputs['Separate Children'].default_value=True;ci.inputs['Reset Children'].default_value=True
@@ -239,17 +269,18 @@ looks=[l.identifier for l in scene.view_settings.bl_rna.properties['look'].enum_
 scene.view_settings.look=next((l for l in looks if 'Punchy' in l),'None');scene.view_settings.exposure=-1.8
 scene.render.resolution_x,scene.render.resolution_y=RES;scene.render.resolution_percentage=100
 
-CAMS={'HQ_Overview':((430,640,430),(30,-30,0),40),'HQ_Bridge':((-8,268,18),(0,-25,30),58),
-      'HQ_West':((-205,70,14),(0,-35,30),62),'HQ_SummitPath':((14,4,52),(0,-70,64),60)}
+CAMS={PREFIX+'Overview':((430,640,430),(30,-30,0),40),PREFIX+'Bridge':((-8,268,18),(0,-25,30),58),
+      PREFIX+'West':((-205,70,14),(0,-35,30),62),PREFIX+'SummitPath':((14,4,52),(0,-70,64),60)}
 def cam(name,loc,target,fov):
  cd=bpy.data.cameras.new(name);cd.lens_unit='FOV';cd.angle=math.radians(fov);cd.clip_end=5000
  c=bpy.data.objects.new(name,cd);col.objects.link(c);c.location=loc
  c.rotation_euler=(Vector(target)-Vector(loc)).to_track_quat('-Z','Y').to_euler();return c
 cams={n:cam(n,*v) for n,v in CAMS.items()}
 if 'OF_Overview' in bpy.data.objects:bpy.data.objects.remove(bpy.data.objects['OF_Overview'],do_unlink=True)
-scene.camera=cams['HQ_Overview']
-bpy.ops.wm.save_as_mainfile(filepath=str(HERE/'OreFactory_HQ.blend'),compress=True)
-print('Saved OreFactory_HQ.blend')
+scene.camera=cams[PREFIX+'Overview']
+BLEND='OreFactory_LowPoly.blend' if LOWPOLY else 'OreFactory_HQ.blend'
+bpy.ops.wm.save_as_mainfile(filepath=str(HERE/BLEND),compress=True)
+print('Saved',BLEND)
 if '--render' in args:
  for n,c in cams.items():
   if ONLY and n!=ONLY:continue
