@@ -1,0 +1,27 @@
+ORE FACTORY - 20 DROPPER MINES
+==============================
+Mines 1-5 (folder mine/):  Frost Wyrm, Emerald Wyvern, Crimson Drake, Astral Orrery, Cosmic Drake (fusion)
+                           -> colour them with mine/MineLighting.lua
+Mines 6-20 (folder mines20/): each folder has its own <Name>_RobloxSetup.lua
+
+  6 Magma Golem Forge      11 Void Rift              16 Sandstinger (scorpion)
+  7 Kraken Depths          12 Phoenix Nest           17 Corsair Cannon (pirate ship)
+  8 Tempest Coil           13 Sakura Shrine          18 Fire & Ice Serpents (Frost Wyrm + Crimson Drake fusion)
+  9 Sun Pyramid            14 Ore Express (train)    19 Titan Drill
+ 10 Glowshroom Grove       15 Clockwork Owl          20 Astral Owl (Clockwork Owl + Astral Orrery fusion)
+
+PUT ONE IN ROBLOX STUDIO (mines 6-20)
+1. Home > Import 3D > pick <Name>_Roblox.fbx
+   - Scale Unit = Stud, UNTICK "Import as single mesh", tick Anchored. Click Import.
+2. Click the imported model in the Explorer so it is selected.
+3. View > Command Bar. Open <Name>_RobloxSetup.lua, copy ALL of it, paste into the Command Bar, press Enter.
+4. View > Output shows what it did. The setup:
+   - colours every part + sets Roblox materials (Neon glows, Glass, Metal, etc.)
+   - adds PointLights to glowing parts
+   - turns the ore cube into an invisible "Drop" part and adds a working "Dropper" script
+5. Press Play: ore drops from the drop point every 2 seconds.
+   Change speed/value: select the model > Properties > Attributes (DropInterval, OreValue, OreSize).
+
+EDIT IN BLENDER
+- Open <Name>.blend, or re-run the script:  python3 <script>.py -- --out . --render
+- Every script needs mine_kit.py (in mines20/, and inside each zip) next to it or one folder up.
