@@ -11,13 +11,15 @@ EMB = M("Ember Marble (Marble)", (34, 18, 12), rough=0.3, marble=((28, 14, 10), 
 ROCK = M("Volcanic Rock", (62, 50, 46), rough=0.9, rbx="Slate", noise=((40, 32, 30), (90, 74, 66), 3.0, 0.5))
 TWIG = M("Twigs (Wood)", (112, 78, 46), rough=0.85, rbx="Wood")
 TWIG2 = M("Dark Twigs (Wood)", (78, 52, 32), rough=0.85, rbx="Wood")
-RED = M("Phoenix Red", (190, 28, 18), rough=0.5, rbx="SmoothPlastic")
-ORANGE = M("Phoenix Orange", (255, 100, 20), rough=0.4, glow=(255, 80, 10), glow_strength=1.4, rbx="Neon", light=(10, 1.2))
-YELLOW = M("Flame Yellow", (255, 190, 40), rough=0.4, glow=(255, 160, 20), glow_strength=2.6, rbx="Neon", light=(12, 1.6))
+RED = M("Phoenix Red", (196, 22, 12), rough=0.4, metal=0.25, rbx="SmoothPlastic")
+ORANGE = M("Phoenix Orange", (255, 84, 0), rough=0.4, glow=(255, 60, 0), glow_strength=0.9, rbx="Neon", light=(10, 1.2))
+YELLOW = M("Flame Yellow", (255, 176, 0), rough=0.4, glow=(255, 140, 0), glow_strength=1.5, rbx="Neon", light=(12, 1.6))
 GOLD = M("Gold (Metal)", (240, 190, 70), rough=0.25, metal=1.0, glow=(120, 70, 10), glow_strength=0.3)
 EYE = M("Eye Glow", (255, 255, 220), rough=0.3, glow=(255, 240, 160), glow_strength=10.0, rbx="Neon")
+RUBY = M("Ruby", (230, 20, 40), rough=0.1, glow=(220, 10, 30), glow_strength=1.0, rbx="Glass", alpha=0.1)
+OBS = M("Obsidian", (24, 18, 20), rough=0.2, metal=0.3, rbx="Basalt")
 EGG = M("Egg Shell", (235, 190, 90), rough=0.25, metal=0.6, rbx="Metal")
-ORE = M("Phoenix Ore", (255, 190, 90), rough=0.15, glow=(255, 150, 40), glow_strength=2.4, rbx="Neon")
+ORE = M("Phoenix Ore", (255, 150, 30), rough=0.15, glow=(255, 110, 10), glow_strength=1.8, rbx="Neon")
 
 top = base_plinth(10.5, 10.5, CHAR, TRIM, EMB, C_BASE, c=1.6)
 for k in range(5):
@@ -49,11 +51,27 @@ for k in range(12):                                         # golden chest scale
     z = 0.9 + (k // 3) * 0.5;a = math.radians(-90 + (k % 3 - 1) * 28)
     c = B + V(1.15 * math.cos(a), 1.15 * math.sin(a) - 0.2, z)
     blade(f"Chest Scale {k + 1}", [c + V(-0.22, 0, 0.18), c + V(0.22, 0, 0.18), c + V(0, -0.08, -0.25)], 0.05, GOLD, C_BIRD)
+for k in range(4):                                          # layered body feathers on the back and sides
+    z = 0.7 + k * 0.7
+    for j in range(9):
+        a = math.radians(-20 + j * 27.5 + (13 if k % 2 else 0))
+        rr = [1.15, 1.38, 1.3, 1.05][k]
+        c = B + V(rr * math.cos(a), rr * math.sin(a), z + 0.3)
+        out = V(math.cos(a), math.sin(a), 0)
+        tg = V(-math.sin(a), math.cos(a), 0)
+        blade(f"Body Feather {k + 1}-{j + 1}", [c - tg * 0.3 + V(0, 0, 0.3), c + tg * 0.3 + V(0, 0, 0.3), c + out * 0.15 + V(0, 0, -0.55)], 0.06,
+              ORANGE if (j + k) % 3 == 0 else RED, C_BIRD)
+torus("Neck Collar", B + V(0, -0.15, 3.75), V(0, -0.2, 1), V(0, 1, 0), 0.62, 0.1, GOLD, C_BIRD, n_major=18, n_minor=5)
+crystal("Collar Gem", B + V(0, -0.82, 3.6), V(0, -1, -0.3), 0.35, 0.18, RUBY, C_BIRD, sides=6)
 Hd = B + V(0, -0.35, 4.6)
 lathe("Phoenix Head", Hd + V(0, 0, -0.7), [(0.5, 0), (0.85, 0.4), (0.8, 1.0), (0.4, 1.35), (0.0, 1.4)], RED, C_BIRD, n=14)
 cone("Beak", Hd + V(0, -0.65, 0.05), Hd + V(0, -1.55, -0.35), 0.28, GOLD, C_BIRD, n=8)
 for side in (1, -1):
     dot(f"Eye {side}", Hd + V(side * 0.42, -0.62, 0.25), 0.12, EYE, C_BIRD)
+    torus(f"Eye Ring {side}", Hd + V(side * 0.43, -0.6, 0.25), V(side * 0.6, -1, 0).normalized(), V(0, 0, 1), 0.17, 0.04, GOLD, C_BIRD, n_major=10, n_minor=4)
+    for j in range(3):                                      # cheek plumes
+        p0 = Hd + V(side * 0.7, -0.1, 0.0 - 0.15 * j)
+        blade(f"Cheek Plume {side}{j}", [p0 + V(0, -0.15, 0.1), p0 + V(0, 0.15, 0.1), p0 + V(side * 0.6, 0.6, 0.15 - 0.25 * j)], 0.05, YELLOW if j == 1 else ORANGE, C_BIRD)
 for k in range(5):                                          # crest of flame feathers
     a = math.radians(-50 + k * 25)
     base = Hd + V(0, 0.1, 0.5)
@@ -73,7 +91,15 @@ for side, lab in ((1, "L"), (-1, "R")):
             w = 0.38 - 0.06 * row
             perp = d.cross(V(0, 1, 0)).normalized()
             blade(f"Wing {lab} R{row + 1} F{k + 1}", [root - perp * w, root + perp * w, root + d * L * 0.7 + perp * w * 0.6, root + d * L, root + d * L * 0.7 - perp * w * 0.3], 0.07, mat, C_WINGS)
-    path_tube(f"Wing Arm {lab}", [sh, sh + V(side * 1.4, 0.3, 0.9), sh + V(side * 2.4, 0.5, 2.0)], [0.28, 0.2, 0.1], RED, C_WINGS, n=8)
+    path_tube(f"Wing Arm {lab}", [sh, sh + V(side * 1.4, 0.3, 0.9), sh + V(side * 2.4, 0.5, 2.0)], [0.28, 0.2, 0.1], GOLD, C_WINGS, n=8)
+    dot(f"Wing Jewel {lab}", sh + V(side * 0.2, -0.15, 0.1), 0.24, RUBY, C_WINGS)
+
+for side in (1, -1):                                        # golden talons over the nest rim
+    for j in range(3):
+        a = math.radians(-90 + (j - 1) * 25)
+        base = B + V(side * 0.55, -0.6, 0.15)
+        path_tube(f"Talon {side}-{j + 1}", [base, base + V(0.25 * math.cos(a), 0.5 * math.sin(a), -0.1), base + V(0.3 * math.cos(a), 0.6 * math.sin(a), -0.5)],
+                  [0.11, 0.09, 0.02], GOLD, C_BIRD, n=6)
 
 # ---- flowing flame tail curling down over the nest
 for k in range(5):
@@ -90,10 +116,19 @@ for k in range(9):
     a = math.radians(-70 + k * 40)
     p = N + V(3.4 * math.cos(a), 3.4 * math.sin(a), 0.6)
     h = 1.2 + 0.6 * (k % 3)
-    lathe(f"Flame {k + 1}", p, [(0.42, 0), (0.36, h * 0.35), (0.2, h * 0.75), (0.0, h)], ORANGE if k % 2 else YELLOW, C_FIRE, n=8)
+    lathe(f"Flame {k + 1}", p, [(0.42, 0), (0.36, h * 0.35), (0.2, h * 0.75), (0.0, h)], ORANGE, C_FIRE, n=8)
+    lathe(f"Flame Core {k + 1}", p + V(0, -0.12, 0.05), [(0.26, 0), (0.22, h * 0.3), (0.0, h * 0.62)], YELLOW, C_FIRE, n=8)
 for k in range(14):
     a = rnd.uniform(0, 2 * math.pi);r = rnd.uniform(1.5, 5.0)
     dot(f"Ember {k + 1}", V(r * math.cos(a), 0.8 + r * math.sin(a), top + rnd.uniform(3, 12)), rnd.uniform(0.06, 0.12), YELLOW, C_FIRE)
+for k, (x, y) in enumerate(((-4.0, 3.9), (4.0, 3.9))):     # obsidian fire torches at the back
+    T0 = V(x, y, top)
+    lathe(f"Torch Pillar {k + 1}", T0, [(0.55, 0), (0.45, 0.3), (0.32, 0.5), (0.3, 3.0), (0.55, 3.3), (0.55, 3.5), (0.4, 3.5)], OBS, C_FIRE, n=6, smooth=False)
+    torus(f"Torch Band {k + 1}", T0 + V(0, 0, 2.6), V(0, 0, 1), V(0, 1, 0), 0.32, 0.06, GOLD, C_FIRE, n_major=12, n_minor=4)
+    lathe(f"Torch Flame {k + 1}", T0 + V(0, 0, 3.45), [(0.38, 0), (0.3, 0.5), (0.15, 1.1), (0.0, 1.5)], ORANGE, C_FIRE, n=8)
+    lathe(f"Torch Flame Core {k + 1}", T0 + V(0, -0.1, 3.5), [(0.22, 0), (0.15, 0.5), (0.0, 0.95)], YELLOW, C_FIRE, n=8)
+for k, (x, y) in enumerate(((-4.0, -3.9), (4.0, -3.9))):    # ember crystal clusters at the front
+    crystal_cluster(f"Ember Cluster {k + 1}", V(x, y, top + 0.15), 4, 0.4, ORANGE, ROCK, C_FIRE, seed=k + 3)
 EG = N + V(0, -3.4, -0.2)
 lathe("Golden Egg", EG + V(0, 0, -0.9), [(0.0, 0), (0.6, 0.25), (0.78, 0.8), (0.66, 1.35), (0.0, 1.75)], EGG, C_FIRE, n=16)
 for k in range(4):
@@ -101,4 +136,4 @@ for k in range(4):
     beam(f"Egg Crack {k + 1}", EG + V(0.75 * math.cos(a), -0.2 + 0.55 * math.sin(a) * 0, 0.2 + 0.25 * k), EG + V(0.7 * math.cos(a + 0.5), -0.55, 0.5 + 0.2 * k), 0.07, 0.05, V(0, -1, 0), YELLOW, C_FIRE)
 ore_cube(EG + V(0, -1.4, -0.8), ORE, C_FIRE)
 
-finish_mine(bg=(0.03, 0.012, 0.006), tint=(1.0, 0.7, 0.5))
+finish_mine(bg=(0.03, 0.012, 0.006), tint=(1.0, 0.86, 0.76))

@@ -1,33 +1,35 @@
--- PhoenixNestMine: colours, Roblox materials, glow lights and a working ore dropper.
--- 1. Import PhoenixNestMine_Roblox.fbx (Import 3D, Scale Unit = Stud, untick "Import as single mesh", tick Anchored).
+-- AstralOwlMine: colours, Roblox materials, glow lights and a working ore dropper.
+-- 1. Import AstralOwlMine_Roblox.fbx (Import 3D, Scale Unit = Stud, untick "Import as single mesh", tick Anchored).
 -- 2. Select the imported model in the Explorer.  3. View > Command Bar: paste this file, press Enter.
 -- The dropper spawns ore at the glowing ore cube every DropInterval seconds (model attributes).
 local LOOK = {
-	Charcoal = {"SmoothPlastic", 30, 24, 22, 0},
-	DarkTwigs = {"Wood", 78, 52, 32, 0},
-	EggShell = {"Metal", 235, 190, 90, 0},
-	EmberMarble = {"SmoothPlastic", 34, 18, 12, 0},
-	EyeGlow = {"Neon", 255, 255, 220, 0},
-	FireTrim = {"Neon", 255, 110, 30, 0},
-	FlameYellow = {"Neon", 255, 176, 0, 0},
-	Gold = {"Metal", 240, 190, 70, 0},
-	Obsidian = {"Basalt", 24, 18, 20, 0},
-	PhoenixOrange = {"Neon", 255, 84, 0, 0},
-	PhoenixOre = {"Neon", 255, 150, 30, 0},
-	PhoenixRed = {"SmoothPlastic", 196, 22, 12, 0},
-	Ruby = {"Glass", 230, 20, 40, 0.1},
-	Twigs = {"Wood", 112, 78, 46, 0},
-	VolcanicRock = {"Slate", 62, 50, 46, 0}
+	Black = {"SmoothPlastic", 10, 10, 20, 0},
+	DuskFeathers = {"Metal", 74, 52, 146, 0},
+	GoldTrim = {"Metal", 232, 182, 72, 0},
+	LensGlow = {"Neon", 120, 230, 255, 0},
+	MeteorRock = {"Slate", 38, 34, 52, 0},
+	MoonSilver = {"SmoothPlastic", 214, 214, 226, 0},
+	NightMetal = {"Metal", 28, 36, 86, 0},
+	PlanetPurple = {"SmoothPlastic", 140, 90, 210, 0},
+	PlanetRed = {"SmoothPlastic", 220, 90, 60, 0},
+	PlanetTeal = {"SmoothPlastic", 60, 190, 170, 0},
+	Pupil = {"SmoothPlastic", 8, 8, 14, 0},
+	StarCore = {"Neon", 255, 228, 180, 0},
+	StarMarble = {"SmoothPlastic", 22, 24, 56, 0},
+	StarfeatherOre = {"Neon", 205, 225, 255, 0},
+	StarglassCrystal = {"Glass", 175, 135, 255, 0.15},
+	Starlight = {"Neon", 190, 245, 255, 0}
 }
 local LIGHTS = {
-	FlameYellow = {255, 140, 0, 12, 1.6},
-	PhoenixOrange = {255, 60, 0, 10, 1.2}
+	LensGlow = {90, 210, 255, 10, 1.4},
+	StarCore = {255, 190, 110, 14, 1.8},
+	Starlight = {160, 235, 255, 8, 0.9}
 }
-local ORE_PART = "PhoenixOre"
+local ORE_PART = "StarfeatherOre"
 
 local model = game:GetService("Selection"):Get()[1]
-if not (model and model:IsA("Model")) then model = workspace:FindFirstChild("PhoenixNestMine_Roblox", true) or workspace:FindFirstChild("PhoenixNestMine", true) end
-assert(model, "Select the imported PhoenixNestMine model first.")
+if not (model and model:IsA("Model")) then model = workspace:FindFirstChild("AstralOwlMine_Roblox", true) or workspace:FindFirstChild("AstralOwlMine", true) end
+assert(model, "Select the imported AstralOwlMine model first.")
 local styled, lit, drop = 0, 0, nil
 for _, p in ipairs(model:GetDescendants()) do
 	if p:IsA("BasePart") then
@@ -87,4 +89,4 @@ end
 ]]
 	s.Parent = model
 end
-print(("[PhoenixNestMine] %d parts coloured, %d lights, dropper %s"):format(styled, lit, drop and "added" or "NOT found"))
+print(("[AstralOwlMine] %d parts coloured, %d lights, dropper %s"):format(styled, lit, drop and "added" or "NOT found"))
