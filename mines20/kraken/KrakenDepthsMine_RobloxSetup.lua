@@ -3,9 +3,7 @@
 -- 2. Select the imported model in the Explorer.  3. View > Command Bar: paste this file, press Enter.
 -- The dropper spawns ore at the glowing ore cube every DropInterval seconds (model attributes).
 local LOOK = {
-	AbyssMarble = {"SmoothPlastic", 10, 24, 44, 0},
 	AnchorIron = {"Metal", 50, 56, 64, 0},
-	Black = {"SmoothPlastic", 8, 14, 20, 0},
 	Brass = {"Metal", 200, 150, 70, 0},
 	Bubbles = {"Glass", 200, 245, 255, 0.35},
 	Coral = {"SmoothPlastic", 255, 110, 100, 0},
@@ -18,7 +16,6 @@ local LOOK = {
 	Pupil = {"SmoothPlastic", 10, 6, 10, 0},
 	SeaSand = {"Sand", 196, 176, 130, 0},
 	Seaweed = {"SmoothPlastic", 40, 140, 80, 0},
-	TealTrim = {"Neon", 30, 210, 200, 0},
 	VerdigrisCopper = {"Metal", 70, 150, 130, 0}
 }
 local LIGHTS = {
