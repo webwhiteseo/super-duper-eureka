@@ -18,14 +18,12 @@ local LOOK = {
 	FrostEye = {"Neon", 180, 250, 255, 0},
 	FrostRune = {"Neon", 120, 220, 255, 0},
 	FrostScales = {"SmoothPlastic", 64, 116, 178, 0},
-	FrozenFloor = {"SmoothPlastic", 150, 196, 228, 0},
 	IceCrystal = {"Glass", 150, 225, 255, 0.15},
 	IceHorn = {"SmoothPlastic", 230, 240, 250, 0},
 	LavaGlow = {"Neon", 255, 110, 20, 0},
 	MagmaCrust = {"Basalt", 44, 30, 28, 0},
 	ObsidianPillar = {"Basalt", 34, 26, 44, 0},
-	Snow = {"Snow", 240, 246, 255, 0},
-	TwinStone = {"Slate", 40, 34, 46, 0}
+	Snow = {"Snow", 240, 246, 255, 0}
 }
 local LIGHTS = {
 	EquinoxOrb = {170, 100, 255, 16, 2},

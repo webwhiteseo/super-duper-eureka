@@ -10,14 +10,12 @@ local LOOK = {
 	HazardBlack = {"SmoothPlastic", 24, 24, 26, 0},
 	HazardYellow = {"SmoothPlastic", 246, 184, 20, 0},
 	PitDark = {"SmoothPlastic", 18, 16, 16, 0},
-	QuarryGravel = {"Pebble", 120, 110, 100, 0},
 	QuarryRock = {"Slate", 108, 92, 80, 0},
 	RigSteel = {"Metal", 130, 134, 140, 0},
 	RigYellow = {"SmoothPlastic", 240, 176, 20, 0},
 	TitanCrystal = {"Neon", 60, 255, 190, 0},
 	TitanOre = {"Neon", 90, 255, 200, 0},
-	TrackRubber = {"SmoothPlastic", 34, 34, 36, 0},
-	TreadPlate = {"DiamondPlate", 66, 68, 72, 0}
+	TrackRubber = {"SmoothPlastic", 34, 34, 36, 0}
 }
 local LIGHTS = {
 	Beacon = {255, 100, 0, 12, 1.6},

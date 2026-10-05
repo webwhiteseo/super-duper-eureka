@@ -3,20 +3,17 @@
 -- 2. Select the imported model in the Explorer.  3. View > Command Bar: paste this file, press Enter.
 -- The dropper spawns ore at the glowing ore cube every DropInterval seconds (model attributes).
 local LOOK = {
-	DarkEarth = {"SmoothPlastic", 34, 26, 22, 0},
 	DoorWood = {"WoodPlanks", 128, 82, 46, 0},
 	FairyLight = {"Neon", 240, 255, 160, 0},
 	GlowSpots = {"Neon", 150, 255, 240, 0},
 	GlowingGills = {"Neon", 210, 160, 255, 0},
 	MagentaCap = {"SmoothPlastic", 220, 60, 160, 0},
 	Moss = {"LeafyGrass", 64, 130, 56, 0},
-	MossMarble = {"SmoothPlastic", 24, 44, 30, 0},
 	MossyStone = {"Slate", 88, 96, 92, 0},
 	MushroomStem = {"SmoothPlastic", 232, 222, 196, 0},
 	Roots = {"Wood", 92, 70, 50, 0},
 	SporeOre = {"Neon", 180, 255, 225, 0},
 	SporePod = {"Glass", 190, 255, 220, 0.2},
-	SporeTrim = {"Neon", 60, 230, 200, 0},
 	TealCap = {"SmoothPlastic", 40, 170, 160, 0},
 	Vine = {"SmoothPlastic", 50, 110, 60, 0},
 	VioletCap = {"SmoothPlastic", 112, 62, 205, 0},

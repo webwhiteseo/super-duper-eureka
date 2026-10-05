@@ -14,9 +14,7 @@ local LOOK = {
 	Lightning = {"Neon", 210, 230, 255, 0},
 	Steel = {"Metal", 110, 116, 128, 0},
 	StormCloud = {"SmoothPlastic", 78, 82, 104, 0},
-	StormMarble = {"SmoothPlastic", 26, 26, 40, 0},
-	VioletArc = {"Neon", 220, 170, 255, 0},
-	VoltTrim = {"Neon", 90, 170, 255, 0}
+	VioletArc = {"Neon", 220, 170, 255, 0}
 }
 local LIGHTS = {
 	Lightning = {150, 200, 255, 14, 2},

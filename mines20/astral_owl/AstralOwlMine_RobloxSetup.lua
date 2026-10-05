@@ -15,7 +15,6 @@ local LOOK = {
 	PlanetTeal = {"SmoothPlastic", 60, 190, 170, 0},
 	Pupil = {"SmoothPlastic", 8, 8, 14, 0},
 	StarCore = {"Neon", 255, 228, 180, 0},
-	StarMarble = {"SmoothPlastic", 22, 24, 56, 0},
 	StarfeatherOre = {"Neon", 205, 225, 255, 0},
 	StarglassCrystal = {"Glass", 175, 135, 255, 0.15},
 	Starlight = {"Neon", 190, 245, 255, 0}

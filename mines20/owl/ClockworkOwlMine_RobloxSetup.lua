@@ -4,10 +4,8 @@
 -- The dropper spawns ore at the glowing ore cube every DropInterval seconds (model attributes).
 local LOOK = {
 	AmberLens = {"Neon", 255, 190, 80, 0},
-	AmberTrim = {"Neon", 255, 176, 60, 0},
 	Brass = {"Metal", 212, 160, 72, 0},
 	ClockFace = {"SmoothPlastic", 244, 238, 222, 0},
-	ClockMarble = {"SmoothPlastic", 232, 222, 196, 0},
 	Copper = {"Metal", 198, 112, 64, 0},
 	DarkIron = {"Metal", 46, 44, 48, 0},
 	GearOre = {"Neon", 255, 210, 120, 0},

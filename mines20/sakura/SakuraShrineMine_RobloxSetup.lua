@@ -7,7 +7,6 @@ local LOOK = {
 	BlackLacquer = {"SmoothPlastic", 20, 18, 20, 0},
 	Blossom = {"SmoothPlastic", 255, 150, 196, 0},
 	BlossomOre = {"Neon", 255, 190, 220, 0},
-	BlossomTrim = {"Neon", 255, 150, 190, 0},
 	CherryBark = {"Wood", 74, 46, 38, 0},
 	DarkWood = {"WoodPlanks", 52, 34, 26, 0},
 	Gold = {"Metal", 236, 186, 70, 0},
@@ -19,8 +18,7 @@ local LOOK = {
 	Petals = {"Neon", 255, 196, 220, 0},
 	PondWater = {"Glass", 60, 150, 180, 0.25},
 	RoofTiles = {"Slate", 54, 60, 76, 0},
-	VermilionLacquer = {"SmoothPlastic", 205, 46, 30, 0},
-	ZenStone = {"SmoothPlastic", 176, 176, 170, 0}
+	VermilionLacquer = {"SmoothPlastic", 205, 46, 30, 0}
 }
 local LIGHTS = {
 	LanternGlow = {255, 180, 90, 9, 1.3}
