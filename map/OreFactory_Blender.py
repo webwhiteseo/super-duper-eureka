@@ -74,10 +74,16 @@ def mountain_height(x,y):
   n=d2/(d2+s*s)  # noise fades out at the peak so it stays smooth
   h+=amp*math.exp(-d2/(2*s*s))*(1+n*(.13*math.sin(a*3+mx)+.07*math.sin(a*7+my)))
  return h
+# Walkable ridge joins the centre hill top to the tall hill top, rising gently between them.
+RIDGE_TOP,RIDGE_FALL=14,48
+def ridge_height(x,y):
+ if y>0 or y<BIG_C[1]:return 0
+ t=ss((-y-SMALL_TOP)/(-BIG_C[1]-BIG_R[1]*.2-SMALL_TOP))
+ return (SMALL_H+(BIG_H-SMALL_H)*t)*(1-ss((abs(x)-RIDGE_TOP)/RIDGE_FALL))
 def feature_height(x,y):
- r=math.hypot(x,y);h=SMALL_H*(1-ss((r-SMALL_TOP)/(SMALL_FOOT-SMALL_TOP)))
- q=math.hypot((x-BIG_C[0])/BIG_R[0],(y-BIG_C[1])/BIG_R[1]);h+=BIG_H*(1-ss((q-.2)/.8))
- return h
+ r=math.hypot(x,y);small=SMALL_H*(1-ss((r-SMALL_TOP)/(SMALL_FOOT-SMALL_TOP)))
+ q=math.hypot((x-BIG_C[0])/BIG_R[0],(y-BIG_C[1])/BIG_R[1]);big=BIG_H*(1-ss((q-.2)/.8))
+ return max(small,big,ridge_height(x,y))
 for mx,my,amp,s in MOUNTAINS:
  d=math.hypot(mx,my);ux,uy=-mx/d,-my/d
  mouth=(mx+ux*s*1.95,my+uy*s*1.95);floor=base_height(*mouth)
@@ -210,6 +216,7 @@ box('CentralSpawn',0,0,SMALL_H+.4,16,16,.8,0,'Spawn')
 def feature_clear(x,y,radius):
  if math.hypot(x,y)<SMALL_FOOT+radius+6:return False
  if math.hypot((x-BIG_C[0])/BIG_R[0],(y-BIG_C[1])/BIG_R[1])<1.15:return False
+ if BIG_C[1]<y<0 and abs(x)<RIDGE_TOP+RIDGE_FALL+radius+4:return False
  if y>30 and abs(x-river_x(y))<river_half(y)+radius+16:return False
  for a,b,hw,cr,floor in CAVES:
   if seg_dist(x,y,a,b)<hw+radius+10 or math.hypot(x-b[0],y-b[1])<cr+radius+10:return False

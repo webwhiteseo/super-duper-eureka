@@ -4,6 +4,7 @@ CHANGES IN THIS VERSION
 - Beach 30% wider. Beach water removed (use your Roblox water).
 - Centre hill: 24 studs high, walkable, flat top (~48 stud wide) for builds. Spawn pad sits on top.
 - Tall hill behind it (between plots 1 and 2): 31 studs (30% higher), walkable.
+- Ridge joins the centre hill top to the tall hill top: 28-stud flat crest, gentle 4-degree climb.
 - River runs from the front edge (+Y) to the centre hill and flows into a walk-in cave inside it.
   Cave has 7-stud ledges on both sides of the water and a chamber with a pool under the hill top.
 - Four mountains (two each side), each with a walk-in cave facing the middle of the map.
