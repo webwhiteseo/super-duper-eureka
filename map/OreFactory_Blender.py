@@ -14,7 +14,7 @@ MATS.update({'DrySand':(.88,.79,.60),'WetSand':(.64,.60,.44),'CaveRock':(.27,.27
 MATS.update({'Wood':(.50,.34,.20),'WoodDark':(.30,.20,.12),'Iron':(.16,.16,.17),'LanternGlow':(1.0,.78,.42),'Bush':(.22,.40,.17),'BushLight':(.30,.48,.20),
  'TallGrass':(.40,.56,.24),'TallGrassDry':(.58,.60,.30),'FlowerRed':(.86,.24,.22),'FlowerYellow':(.96,.80,.22),'FlowerWhite':(.94,.93,.88),'FlowerPurple':(.58,.38,.80),
  'PalmTrunk':(.55,.42,.27),'PalmLeaf':(.25,.52,.20),'Coconut':(.35,.24,.13),
- 'GrassDark':(.29,.44,.20),'Dirt':(.45,.36,.24),'Scree':(.50,.48,.44),'RockDark':(.30,.31,.29)})
+ 'GrassDark':(.29,.44,.20),'Stone':(.56,.55,.51),'StoneDark':(.43,.42,.39),'Gravel':(.48,.46,.42),'RoofWood':(.40,.22,.14),'Dirt':(.45,.36,.24),'Scree':(.50,.48,.44),'RockDark':(.30,.31,.29)})
 SCENE=[];random.seed(37)
 def boundary(a):
  c,s=math.cos(a),math.sin(a);roots=[]
@@ -142,6 +142,7 @@ def hill_info(x,y):
  return best
 # Dirt path between the two flat tops: graded walkway, cut and filled into the slopes.
 PATH_A,PATH_B,PATH_W=(0,-16),(0,-52),4.5
+TX,TY=0,-67  # summit tower
 def path_info(x,y):
  """Returns (blend 0..1, path height) for the summit path."""
  ay,by=PATH_A[1],PATH_B[1];s=(ay-y)/(ay-by)
@@ -235,7 +236,7 @@ def ground_mat(c,size):
   hmid=sum(p[3] for p in c)/4
   if 3 in zones and slope>.9:return 'RockDark' if int((hmid+4*tint)/5)%2 else 'Rock'  # strata bands
   if 4 in zones:return 'Scree'
-  if zones.count(5)>=2:return 'Dirt'
+  if zones.count(5)>=2:return 'Gravel'
   if slope>1.6:return 'Rock'
   if slope>1.35 and tint>.25:return 'Dirt'
  a=math.atan2(y,x);da=(a-BEACH_ANGLE+math.pi)%TAU-math.pi;r=math.hypot(x,y);rb=smooth_boundary(a)
@@ -394,6 +395,7 @@ for ci,(a,b,hw,cr,floor) in enumerate(CAVES[1:],1):
 def grassy(x,y,margin):
  a=math.atan2(y,x);r=math.hypot(x,y)
  if r>smooth_boundary(a)-8:return False
+ if any(path_info(x+dx,y)[0]>0 for dx in (-7,0,7)) or math.hypot(x-TX,y-TY)<14:return False
  hh=hill_height(x,y)
  if any(hh>hd[2]-.5 and math.hypot(x-hd[1][0],y-hd[1][1])<hd[3]+4 for hd in HILL_DEFS):return False
  if abs(height(x+1.5,y)-height(x-1.5,y))>2.2 or abs(height(x,y+1.5)-height(x,y-1.5))>2.2:return False
@@ -486,6 +488,7 @@ def hill_spot(hd,t0,t1,avoid_ramp):
   h,foot,z=hill_shape(cx+300*math.cos(math.radians(th)),cy+300*math.sin(math.radians(th)),hd)
   rr=top+(foot-top)*deco.uniform(t0,t1);x,y=cx+rr*math.cos(math.radians(th)),cy+rr*math.sin(math.radians(th))
   if plot_clearance(x,y)<10 or hill_info(x,y)[1] not in (2,) :continue
+  if any(path_info(x+dx,y)[0]>0 for dx in (-7,0,7)):continue
   if any(seg_dist(x,y,ca,cb)<hw+10 or math.hypot(x-cb[0],y-cb[1])<cr+10 for ca,cb,hw,cr,fl in CAVES):continue
   if y>30 and abs(x-river_x(y))<river_half(y)+14:continue
   return x,y
@@ -510,6 +513,45 @@ for hd in HILL_DEFS:
   plants.put(ellipsoid,x+deco.uniform(-4,4),y+deco.uniform(-4,4),z+h-2.5,6,6,5,'Leaf',7,4)
 plants.emit()
 hr.emit()
+
+# ---------- Stone path between the tops: flagstone slabs (they step up the slope) ----------
+stones=Batch('StonePath')
+ay,by=PATH_A[1]-6,PATH_B[1]-2
+y=ay
+while y>by:
+ sc=min(1,max(0,(PATH_A[1]-y)/(PATH_A[1]-PATH_B[1])));cx=6*math.sin(math.pi*sc)
+ for off in (-2.9,0,2.9):
+  x=cx+off+deco.uniform(-.35,.35);yy=y+deco.uniform(-.3,.3);w=deco.uniform(2.5,2.9);l=deco.uniform(2.0,2.4)
+  z=max(height(x+dx,yy+dy) for dx in (-w/2,w/2) for dy in (-l/2,l/2))
+  stones.put(box,x,yy,z+.05,w,l,.5,deco.uniform(-8,8),deco.choice(['Stone','Stone','StoneDark']))
+ y-=2.5
+stones.emit()
+
+# ---------- Stone lookout tower on the tall-hill top, door facing the path ----------
+S,WALL,TH=11,1.2,18
+tz=min(height(TX+dx,TY+dy) for dx in (-S/2,0,S/2) for dy in (-S/2,0,S/2))
+tw=Batch('SummitTower')
+tw.put(box,TX,TY,tz-1+.75,S+2,S+2,2.5,0,'StoneDark')  # plinth, sunk into the hilltop
+z0=tz+.5;zc=z0+TH/2
+tw.put(box,TX,TY-S/2+WALL/2,zc,S,WALL,TH,0,'Stone')            # back wall
+for sx in (-1,1):tw.put(box,TX+sx*(S/2-WALL/2),TY,zc,WALL,S,TH,0,'Stone')  # side walls
+DOOR=4;side=(S-DOOR)/2
+for sx in (-1,1):tw.put(box,TX+sx*(DOOR/2+side/2),TY+S/2-WALL/2,zc,side,WALL,TH,0,'Stone')  # front wall around the door
+tw.put(box,TX,TY+S/2-WALL/2,z0+7+(TH-7)/2,DOOR,WALL,TH-7,0,'Stone')  # above the door (7-stud doorway)
+tw.put(box,TX,TY,z0+.2,S-2*WALL,S-2*WALL,.4,0,'StoneDark')          # floor
+for k,h in enumerate((5,11)):                                         # window slits
+ for sx in (-1,1):tw.put(box,TX+sx*(S/2+.05),TY,z0+h+1,.3,1,2,0,'Iron')
+tw.put(box,TX,TY,z0+TH+.4,S+1.4,S+1.4,.8,0,'StoneDark')              # top ledge
+for i in range(4):                                                     # battlements
+ for j in (-1,1):
+  tw.put(box,TX-S/2+1+i*(S-2)/3,TY+j*(S/2+.2),z0+TH+1.6,1.6,1.2,1.6,0,'Stone')
+  tw.put(box,TX+j*(S/2+.2),TY-S/2+1+i*(S-2)/3,z0+TH+1.6,1.2,1.6,1.6,0,'Stone')
+for k in range(5):                                                     # stepped wooden roof
+ w=S-1-k*2.2;tw.put(box,TX,TY,z0+TH+1.2+k*1.1,w,w,1.1,0,'RoofWood')
+tw.put(box,TX,TY,z0+TH+7.3,.4,.4,4,0,'WoodDark')                      # flag pole
+tw.put(box,TX+1.3,TY,z0+TH+8.4,2.4,.15,1.4,0,'FlowerRed')             # flag
+tw.emit()
+for sx in (-1,1):lantern('Lantern_Tower_%s'%('W' if sx<0 else 'E'),TX+sx*(DOOR/2+1.6),TY+S/2+1.6,height(TX+sx*(DOOR/2+1.6),TY+S/2+1.6))
 for b in QUAD.values():b.emit()
 
 try:import bpy

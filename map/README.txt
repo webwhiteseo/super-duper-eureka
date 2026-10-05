@@ -1,6 +1,11 @@
-ORE FACTORY — BLENDER TERRAIN (v8)
+ORE FACTORY — BLENDER TERRAIN (v9)
 
 CHANGES IN THIS VERSION
+NEW IN v9
+- Summit path is now stone: gravel bed with flagstone slabs that step up the slope (StonePath).
+- Stone lookout tower on the tall-hill top where the path ends (SummitTower): 11x11 studs, 18 high,
+  doorway facing the path, battlements, wooden roof, flag, lanterns at the door.
+
 NEW IN v8
 - Dirt path from the centre-hill top to the tall-hill top: 9 studs wide, gently curved, max 30 degrees.
 

@@ -12,7 +12,7 @@ mats={'Grass':(.38,.53,.27),'GrassLight':(.41,.555,.285),'GrassDark':(.345,.495,
  'DrySand':(.91,.83,.64),'WetSand':(.71,.66,.51),'CaveRock':(.33,.33,.32),'RiverBed':(.55,.50,.41),'Water':(.30,.60,.70),
  'Wood':(.58,.40,.24),'WoodDark':(.36,.24,.14),'Iron':(.2,.2,.21),'LanternGlow':(1.0,.85,.5),'Bush':(.26,.45,.20),'BushLight':(.34,.53,.23),
  'TallGrass':(.46,.62,.28),'TallGrassDry':(.64,.66,.34),'FlowerRed':(.90,.28,.25),'FlowerYellow':(.98,.84,.26),'FlowerWhite':(.97,.96,.92),
- 'FlowerPurple':(.64,.44,.86),'PalmTrunk':(.60,.47,.31),'PalmLeaf':(.30,.58,.24),'Coconut':(.40,.28,.16),'Dirt':(.52,.42,.29),'Scree':(.56,.54,.50)}
+ 'FlowerPurple':(.64,.44,.86),'PalmTrunk':(.60,.47,.31),'PalmLeaf':(.30,.58,.24),'Coconut':(.40,.28,.16),'Dirt':(.52,.42,.29),'Scree':(.56,.54,.50),'Stone':(.62,.61,.57),'StoneDark':(.48,.47,.44),'Gravel':(.55,.53,.49),'RoofWood':(.46,.26,.16)}
 SUN=np.array([-.55,-.45,.7]);SUN/=np.linalg.norm(SUN)
 FOG=np.array([.80,.85,.86]);SKY_TOP=np.array([.55,.70,.86]);SKY_LOW=np.array([.83,.88,.90])
 W,H=1600,1180;font='/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
@@ -140,6 +140,7 @@ def render(name,mode,region=None,view=None,cam=None,caption=''):
  im.save(P/(name+'.png'));print(name)
 
 render('OreFactory_PlayerView_Front','persp',cam=((-8,268,18),(0,-25,30),58),caption='Player view from the bridge: centre hill (cave + ledge route) with the tall hill behind')
+render('OreFactory_PlayerView_Path','persp',cam=((14,4,52),(0,-70,64),60),caption='From the centre-hill top: stone path up to the lookout tower')
 render('OreFactory_PlayerView_West','persp',cam=((-205,70,14),(0,-35,30),62),caption='Player view from the west: centre-hill ramp, tall-hill cliff with its ledge route')
 render('OreFactory_Hills','ortho',region=(-130,130,-170,90),view=(.62,.42,.42),caption='Twin hills from the east: rounded shoulders, spurs and gullies, cliff with scree')
 render('OreFactory_3D_Preview','ortho',view=(.27,.76,.66),caption='Twin hills • River + bridge • Cave lanterns • Flowers and grass • Beach palms • Fog')

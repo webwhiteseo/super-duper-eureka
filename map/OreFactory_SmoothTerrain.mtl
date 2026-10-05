@@ -148,6 +148,26 @@ Kd 0.29 0.44 0.2
 Ka 0.1 0.1 0.1
 d 1
 
+newmtl Stone
+Kd 0.56 0.55 0.51
+Ka 0.1 0.1 0.1
+d 1
+
+newmtl StoneDark
+Kd 0.43 0.42 0.39
+Ka 0.1 0.1 0.1
+d 1
+
+newmtl Gravel
+Kd 0.48 0.46 0.42
+Ka 0.1 0.1 0.1
+d 1
+
+newmtl RoofWood
+Kd 0.4 0.22 0.14
+Ka 0.1 0.1 0.1
+d 1
+
 newmtl Dirt
 Kd 0.45 0.36 0.24
 Ka 0.1 0.1 0.1
