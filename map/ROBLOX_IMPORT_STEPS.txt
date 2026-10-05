@@ -8,8 +8,10 @@ ORE FACTORY -> ROBLOX STUDIO
    - Tick "Anchored"
    - Tick "Insert Using Scene Position"
    Click Import. The model is called OreFactory_Roblox.
-3. View > Command Bar: paste RobloxSetup.lua, press Enter (colours, Roblox materials, collision).
-4. Command Bar: paste OreFactory_Lighting.lua, press Enter (fog, atmosphere, lantern lights, 50-degree slope limit).
+3. View > Command Bar: paste OreFactory_SetupAll.lua, press Enter. One paste does everything:
+   colours, Roblox materials, collision, fog/atmosphere, lantern lights, 50-degree slope limit.
+   (Nothing needs to be selected. Check View > Output for the summary.)
+   MineLighting.lua is only for the mines, not the map.
 5. Optional: paste ../mine/DragonGlassMine.lua to add the Dragon Glass Mine.
 6. Play-test: walk the ramps, the summit path, into the castle and up its stairs.
 
