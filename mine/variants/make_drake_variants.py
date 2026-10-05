@@ -594,5 +594,6 @@ add_light("Flame Light", 'POINT', V(LX, LY, 7.0 - LZ), 120, {f}, size=0.3)
     print("wrote", os.path.relpath(out, HERE))
 
 
-for v in VARIANTS:
-    build(v)
+if __name__ == "__main__":
+    for v in VARIANTS:
+        build(v)

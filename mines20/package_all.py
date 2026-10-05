@@ -1,4 +1,4 @@
-"""Zip each mine (script, mine_kit, .blend, Roblox FBX, setup Lua, renders) and build a gallery of all 25 mines."""
+"""Zip each mine (script, mine_kit, .blend, Roblox FBX, setup Lua, renders) and build a gallery of all 30 mines."""
 import os, glob, zipfile
 from PIL import Image, ImageDraw, ImageFont
 
@@ -8,7 +8,8 @@ NEW = [("magma_golem", "Magma Golem Forge"), ("kraken", "Kraken Depths"), ("temp
        ("glowshroom", "Glowshroom Grove"), ("owl", "Clockwork Owl"), ("void", "Void Rift"), ("phoenix", "Phoenix Nest"),
        ("sakura", "Sakura Shrine"), ("locomotive", "Ore Express"), ("scorpion", "Sandstinger"), ("corsair", "Corsair Cannon"),
        ("twin_serpents", "Fire & Ice Serpents (fusion)"), ("titan_drill", "Titan Drill"), ("astral_owl", "Astral Owl (fusion)")]
-DRAKES = [("sapphire", "Sapphire Tide"), ("solar", "Solar Gold"), ("shadow", "Shadow Amethyst"), ("venom", "Venom Drake"), ("storm", "Storm Drake")]
+DRAKES = [("sapphire", "Sapphire Tide"), ("solar", "Solar Gold"), ("shadow", "Shadow Amethyst"), ("venom", "Venom Drake"), ("storm", "Storm Drake"),
+          ("cyber", "Cyber Neon"), ("jade", "Jade Emperor"), ("necro", "Bone Necro"), ("rose", "Rose Quartz"), ("steampunk", "Copper Steam")]
 OLD = [("frost", "Frost Wyrm"), ("emerald", "Emerald Wyvern"), ("crimson", "Crimson Drake"), ("orrery", "Astral Orrery"),
        ("cosmic", "Cosmic Drake (fusion)")]
 
