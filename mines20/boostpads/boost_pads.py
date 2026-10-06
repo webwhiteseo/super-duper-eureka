@@ -79,7 +79,7 @@ elif PAD == 3:    # Gale Boost Pad: square steps, four turbine fans at the corne
     for sx in (-1, 1):
         for sy in (-1, 1):
             F = V(sx * 4.7, sy * 4.7, 1.2)
-            abox(f"Fan Pillar {sx}{sy}", F.x - 0.7, F.x + 0.7, F.y - 0.7, F.y + 0.7, 1.2, 4.0, P, C_PILLARS)
+            abox(f"Fan Pillar {sx}{sy}", F.x - 0.7, F.x + 0.7, F.y - 0.7, F.y + 0.7, 1.2, 5.2, P, C_PILLARS)
             C = F + V(0, 0, 4.0)
             d = V(-sx, -sy, 0).normalized()
             tube(f"Fan Duct {sx}{sy}", C + d * 0.3 + V(0, 0, 1.3), d, Z_AX, 1.3, 1.1, 1.0, P2, C_PILLARS, n=20)
@@ -88,6 +88,7 @@ elif PAD == 3:    # Gale Boost Pad: square steps, four turbine fans at the corne
                 u, v = perp_basis(d)
                 r_ = math.cos(a) * u + math.sin(a) * v
                 blade(f"Fan Blade {sx}{sy}{j}", [C + d * 0.3 + V(0, 0, 1.3), C + d * 0.3 + V(0, 0, 1.3) + r_ * 1.0 + (math.cos(a + 1.2) * u + math.sin(a + 1.2) * v) * 0.35, C + d * 0.3 + V(0, 0, 1.3) + r_ * 1.0], 0.05, GL, C_PILLARS)
+            abox(f"Fan Mount {sx}{sy}", F.x - 0.35, F.x + 0.35, F.y - 0.35, F.y + 0.35, 5.2, 6.5, P2, C_PILLARS)
             dot(f"Fan Hub {sx}{sy}", C + d * 0.3 + V(0, 0, 1.3), 0.25, A, C_PILLARS)
     for s in (-1, 1):
         abox(f"Arch Leg {s}", s * 3.6 - 0.5, s * 3.6 + 0.5, -0.5, 0.5, 1.2, 7.0, P2, C_CORE)
