@@ -1,0 +1,12 @@
+ORE HAVEN - ALL MODELS IN ONE FILE (77 items: droppers, mines, drake mines, furnaces, upgrader, boost pads, Machine Workshop)
+
+ROBLOX STUDIO
+1. Avatar tab > Import 3D > pick OreHaven_AllModels_Roblox.fbx
+   - Scale Unit: Stud   - untick "Import as single mesh"   - tick Anchored
+2. In the Explorer, click the imported "OreHaven_AllModels" model.
+3. View > Command Bar > paste ALL of OreHaven_AllModels_Setup.lua > Enter.
+   Colours, Neon glows, lights, dropper/furnace/upgrader scripts are added to every item.
+4. Drag each item (its own Model inside the folder) to where you want it.
+
+BLENDER
+Open OreHaven_AllModels.blend - every item is its own empty (named) inside a collection per type.
