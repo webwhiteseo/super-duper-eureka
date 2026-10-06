@@ -78,38 +78,47 @@ local ITEMS = {
 	["VolcanoForgeFurnace"] = {["BasaltRock"] = {"Basalt", 54, 44, 42, 0}, ["BurnZone"] = {"ForceField", 255, 140, 40, 0.6}, ["Conveyor"] = {"DiamondPlate", 44, 34, 32, 0}, ["CooledLava"] = {"CrackedLava", 30, 22, 22, 0}, ["ForgeIron"] = {"Metal", 60, 58, 62, 0}, ["Lava"] = {"Neon", 255, 110, 20, 0, {255, 80, 0, 16, 2}}, ["LavaNeon"] = {"Neon", 255, 150, 40, 0, {255, 110, 10, 8, 1}}, ["Obsidian"] = {"Glass", 24, 16, 30, 0}, ["Smoke"] = {"SmoothPlastic", 70, 66, 68, 0.2}},
 	["WitchCauldronFurnace"] = {["BroomWood"] = {"Wood", 110, 74, 44, 0}, ["BurnZone"] = {"ForceField", 120, 255, 90, 0.7}, ["CauldronIron"] = {"Metal", 40, 38, 44, 0}, ["Conveyor"] = {"DiamondPlate", 60, 52, 66, 0}, ["HearthStone"] = {"Slate", 90, 86, 96, 0}, ["PotionBlue"] = {"Glass", 80, 160, 255, 0.2}, ["PotionPink"] = {"Glass", 255, 80, 180, 0.2}, ["Straw"] = {"SmoothPlastic", 210, 180, 90, 0}, ["WitchBrew"] = {"Neon", 120, 255, 90, 0, {80, 255, 40, 16, 2}}, ["WitchFire"] = {"Neon", 190, 80, 255, 0, {160, 40, 255, 10, 1.4}}},
 }
-local ANY = {}   -- fallback by part name only, if an item model was renamed
-for _, look in pairs(ITEMS) do for k, v in pairs(look) do if ANY[k] == nil then ANY[k] = v end end end
-local function key(n) return (n:gsub("%.%d+$", ""):gsub("_%d+$", "")) end
+local function norm(n)   -- forgiving name match: ignores case, spaces, dots, "_Roblox", "Mesh" and .001/_001 copies
+	n = n:lower():gsub("_roblox$", ""):gsub("[%.%_]%d%d%d+$", ""):gsub("mesh$", ""):gsub("[^%w]", "")
+	return n
+end
+local LOOKS, ANY = {}, {}
+for item, look in pairs(ITEMS) do
+	local t = {}
+	for k, v in pairs(look) do t[norm(k)] = v; if ANY[norm(k)] == nil then ANY[norm(k)] = v end end
+	LOOKS[norm(item)] = t
+end
 local function itemOf(p)
 	local a = p.Parent
-	while a and a ~= workspace do
-		local look = ITEMS[a.Name] or ITEMS[(a.Name:gsub("_Roblox$", ""))]
-		if look then return look end
+	while a and a ~= game do
+		local t = LOOKS[norm(a.Name)]
+		if t then return t end
 		a = a.Parent
 	end
 end
-local done, lights, missed = 0, 0, {}
+local parts, done, lights, unknown = 0, 0, 0, {}
 for _, p in ipairs(workspace:GetDescendants()) do
-	if p:IsA("BasePart") then
+	if p:IsA("BasePart") and not p:IsA("Terrain") then
+		parts += 1
 		local look = itemOf(p)
-		local l = (look and look[key(p.Name)]) or ANY[key(p.Name)]
+		local l = (look and look[norm(p.Name)]) or ANY[norm(p.Name)]
 		if l then
-			pcall(function()
+			local ok, err = pcall(function()
 				for _, c in ipairs(p:GetChildren()) do if c:IsA("SurfaceAppearance") then c:Destroy() end end
 				if p:IsA("MeshPart") then p.TextureID = "" end
-				p.Material = Enum.Material[l[1]]; p.Color = Color3.fromRGB(l[2], l[3], l[4]); p.Transparency = l[5]
+				p.Color = Color3.fromRGB(l[2], l[3], l[4]); p.Transparency = l[5]
+				pcall(function() p.Material = Enum.Material[l[1]] end)
 				if l[6] then
 					local pl = p:FindFirstChild("GlowLight") or Instance.new("PointLight")
 					pl.Name = "GlowLight"; pl.Color = Color3.fromRGB(l[6][1], l[6][2], l[6][3]); pl.Range = l[6][4]; pl.Brightness = l[6][5]; pl.Parent = p
 					lights += 1
 				end
 			end)
-			done += 1
-		elseif look then
-			missed[key(p.Name)] = true
+			if ok then done += 1 else warn(p:GetFullName(), err) end
+		elseif #unknown < 15 then
+			table.insert(unknown, p:GetFullName())
 		end
 	end
 end
-local m = {} for k in pairs(missed) do table.insert(m, k) end
-print(("[OreHaven] coloured %d parts, %d lights%s"):format(done, lights, #m > 0 and (" | no colour for: " .. table.concat(m, ", ")) or ""))
+print(("[OreHaven] parts in Workspace: %d | coloured: %d | lights: %d"):format(parts, done, lights))
+if done == 0 then warn("[OreHaven] nothing matched. Example part names found:\n" .. table.concat(unknown, "\n")) end
