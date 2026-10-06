@@ -27,6 +27,17 @@ def chevrons(C, n, size, mat, coll, up=False):
             ax = (V(s, 0, 0) * 0.7 - V(0, 1, 0) * 0.7).normalized()
             obox(f"Pad Arrow {k}{s}", V(C.x + s * size * 0.22, y, C.z + 0.02), (size * 0.5, size * 0.1, 0.03), ax, Z_AX.cross(ax), Z_AX, mat, coll)
 
+def walk_ramp(mat, glow, top=1.2, w=2.4, y0=-10.0, y1=-5.4, y2=-3.2):
+    """Gentle walk-up ramp at the front so players can walk straight onto the pad."""
+    hexa("Walk Ramp", [V(-w, y0, 0), V(w, y0, 0), V(w, y1, 0), V(-w, y1, 0),
+                       V(-w, y0, 0.02), V(w, y0, 0.02), V(w, y1, top), V(-w, y1, top)], mat, C_BASE)
+    abox("Walk Ramp Top", -w, w, y1, y2, 0.0, top, mat, C_BASE)
+    for sgn in (1, -1):
+        a, b = sorted((sgn * w, sgn * (w + 0.15)))
+        hexa(f"Ramp Edge Glow {sgn}", [V(a, y0, 0), V(b, y0, 0), V(b, y1, top), V(a, y1, top),
+                                       V(a, y0, 0.1), V(b, y0, 0.1), V(b, y1, top + 0.1), V(a, y1, top + 0.1)], glow, C_BASE)
+        abox(f"Ramp Top Glow {sgn}", a, b, y1, y2, 0.0, top + 0.1, glow, C_BASE)
+
 if PAD == 1:      # Hex Speed Pad: hexagon steps, three slanted pylons, floating energy prism
     P, P2, G, GL, A, B = mats((30, 52, 56), (40, 230, 255), (120, 255, 240))
     for k, (r, z0, z1) in enumerate(((7.0, 0.0, 0.5), (5.6, 0.5, 0.9), (4.2, 0.9, 1.2))):
@@ -104,7 +115,7 @@ elif PAD == 4:    # Thunder Boost Pad: triangular steps, lightning-bolt pylons, 
     BOLT = [(0.0, -0.5), (0.55, -0.12), (0.47, -0.42), (1.0, 0.0), (0.4, 0.2), (0.5, 0.48), (0.0, 0.5)]
     blade("Pad Bolt", [V(0.9 * b, -1.6 + 3.2 * a, 1.28) for a, b in BOLT], 0.04, A, C_PAD)
     for k in range(3):
-        a = math.radians(90 + 120 * k + 60)
+        a = math.radians(90 + 120 * k)
         d = V(math.cos(a), math.sin(a), 0)
         b = d * 4.4
         abox(f"Pylon Base {k}", b.x - 0.7, b.x + 0.7, b.y - 0.7, b.y + 0.7, 0.5, 1.8, P2, C_PILLARS)
@@ -134,5 +145,10 @@ else:             # Rocket Boost Pad: octagon steps, twin thruster nozzles, flam
     cyl("Booster Core", V(0, 1.0, 5.6), V(0, 1.0, 3.6), 0.6, 0.4, GL, C_CORE, n=12)
     dot("Booster Glow", V(0, 1.0, 3.4), 0.45, G, C_CORE)
 
+# flatten the stepped base so the pad sits almost at ground level: players just walk on and stand in the middle
+for ob in MINE_OBJECTS:
+    for v in ob.data.vertices:
+        z = v.co.z
+        v.co.z = z / 4 if z <= 1.2 else z - 0.9
 finish_mine(bg=(0.02, 0.024, 0.03), tint=(0.9, 0.95, 1.0))
 write_look_lua(NAME, "The glowing part named BoostPad is the trigger for your speed/jump boost script.")
