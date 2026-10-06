@@ -6,10 +6,10 @@ local LOOK = {
 	AccentNeon = {"Neon", 200, 255, 240, 0},
 	CoreGlow = {"Neon", 110, 255, 200, 0},
 	Crystal = {"Glass", 150, 255, 240, 0.15},
-	DarkPlate = {"DiamondPlate", 48, 52, 56, 0},
+	DarkPlate = {"DiamondPlate", 86, 93, 100, 0},
 	Ore = {"Neon", 170, 255, 255, 0},
 	Steam = {"SmoothPlastic", 236, 240, 244, 0.3},
-	SteelPlate = {"DiamondPlate", 86, 93, 99, 0},
+	SteelPlate = {"DiamondPlate", 147, 158, 170, 0},
 	VentRock = {"Slate", 80, 76, 72, 0}
 }
 local LIGHTS = {
