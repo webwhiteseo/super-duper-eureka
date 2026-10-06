@@ -28,7 +28,7 @@ FLOOR = M("Concrete Floor", (182, 178, 170), rough=0.8, rbx="Concrete", noise=((
 STEEL = M("Charcoal Steel (Metal)", (52, 54, 60), rough=0.45, metal=0.75, rbx="Metal")
 STEEL2 = M("Light Steel (DiamondPlate)", (120, 124, 132), rough=0.4, metal=0.8, rbx="DiamondPlate", plate=8.0)
 BLUE = M("Castle Wall Stone", (84, 92, 88), rough=0.85, rbx="Slate", noise=((70, 78, 74), (100, 108, 104), 3.0, 0.25))
-BLUE_IN = M("Blue Wall Panel", (84, 112, 146), rough=0.6, rbx="SmoothPlastic")
+BLUE_IN = M("Blue Wall Panel", (100, 130, 166), rough=0.6, rbx="SmoothPlastic")
 BAND = M("Dark Stone Band", (56, 62, 60), rough=0.85, rbx="Slate")
 RED = M("Roof Red", (178, 72, 64), rough=0.6, rbx="Slate", noise=((154, 58, 52), (196, 88, 78), 4.0, 0.2))
 BANNER = M("Banner Red (Fabric)", (190, 50, 44), rough=0.8, rbx="Fabric")
@@ -42,18 +42,58 @@ ORANGE = M("Industrial Orange", (232, 124, 40), rough=0.5)
 GLASS = M("Window Glass", (190, 220, 240), rough=0.05, rbx="Glass", alpha=0.6)
 HAZ = M("Hazard Yellow", (236, 190, 40), rough=0.5)
 HAZB = M("Hazard Black", (30, 30, 34), rough=0.5)
-CYAN = M("Archive Cyan", (60, 220, 240), rough=0.3, glow=(30, 210, 240), glow_strength=3.0, rbx="Neon", light=(10, 1.0))
-FUSE = M("Fusion Orange", (255, 140, 40), rough=0.3, glow=(255, 110, 20), glow_strength=3.5, rbx="Neon", light=(12, 1.4))
-PURP = M("Evolution Purple", (170, 90, 240), rough=0.3, glow=(150, 70, 240), glow_strength=3.0, rbx="Neon", light=(10, 1.0))
+CYAN = M("Archive Cyan", (60, 220, 240), rough=0.3, glow=(30, 210, 240), glow_strength=3.0, rbx="Neon", light=(16, 1.6))
+FUSE = M("Fusion Orange", (255, 140, 40), rough=0.3, glow=(255, 110, 20), glow_strength=3.5, rbx="Neon", light=(16, 1.8))
+PURP = M("Evolution Purple", (170, 90, 240), rough=0.3, glow=(150, 70, 240), glow_strength=3.0, rbx="Neon", light=(16, 1.6))
 GOLD = M("Gold Detail (Metal)", (236, 186, 70), rough=0.25, metal=1.0, rbx="Metal")
 SCREEN = M("Blank Screen", (24, 30, 40), rough=0.2, rbx="SmoothPlastic")
 PLAQUE = M("Blank Plaque", (210, 206, 196), rough=0.5, rbx="SmoothPlastic")
 PROJ = M("Projection Surface", (40, 60, 76), rough=0.15, metal=0.3, rbx="SmoothPlastic")
-LAMP = M("Soft Lamp", (255, 244, 214), rough=0.4, glow=(255, 236, 200), glow_strength=3.0, rbx="Neon", light=(24, 1.2))
+LAMP = M("Soft Lamp", (255, 244, 214), rough=0.4, glow=(255, 236, 200), glow_strength=4.0, rbx="Neon", light=(30, 1.8))
 HOLO = M("Display Placeholder", (90, 220, 255), rough=0.1, rbx="ForceField", alpha=1.0)
 WOOD = M("Crate Wood (Wood)", (150, 110, 70), rough=0.8, rbx="WoodPlanks")
 
 SEPARATE = set()                                    # objects exported individually under their own names
+SIGN_GOLD = M("Sign Letters (Gold)", (255, 206, 90), rough=0.3, glow=(255, 190, 70), glow_strength=1.6, rbx="Neon")
+LBL_ARCH = M("Label Archive", (90, 235, 250), rough=0.3, glow=(40, 220, 245), glow_strength=3.0, rbx="Neon")
+LBL_FUSE = M("Label Fusion", (255, 160, 60), rough=0.3, glow=(255, 130, 30), glow_strength=3.0, rbx="Neon")
+LBL_EVO = M("Label Evolution", (200, 130, 255), rough=0.3, glow=(175, 100, 255), glow_strength=3.0, rbx="Neon")
+LBL_BOARD = M("Label Board", (30, 34, 44), rough=0.5, rbx="SmoothPlastic")
+HOLO_M = M("Machine Hologram", (110, 230, 255), rough=0.1, glow=(60, 210, 255), glow_strength=2.5, rbx="Neon", alpha=0.35, light=(18, 1.5))
+HOLO_B = M("Hologram Beam", (110, 230, 255), rough=0.1, glow=(60, 210, 255), glow_strength=1.0, rbx="Neon", alpha=0.8)
+PATH_A = M("Path A Hologram", (255, 210, 90), rough=0.1, glow=(255, 190, 60), glow_strength=2.5, rbx="Neon", alpha=0.3, light=(10, 1.2))
+PATH_B = M("Path B Hologram", (220, 120, 255), rough=0.1, glow=(190, 90, 255), glow_strength=2.5, rbx="Neon", alpha=0.3, light=(10, 1.2))
+REW_1 = M("Reward Crystal", (90, 230, 250), rough=0.15, glow=(40, 200, 240), glow_strength=1.2, rbx="Glass", alpha=0.15)
+REW_3 = M("Reward Amethyst", (190, 110, 250), rough=0.15, glow=(160, 80, 240), glow_strength=1.2, rbx="Glass", alpha=0.15)
+for _m, _a in ((HOLO_M, 0.45), (HOLO_B, 0.12), (PATH_A, 0.5), (PATH_B, 0.5)):   # see-through in renders
+    _m.node_tree.nodes["Principled BSDF"].inputs["Alpha"].default_value = _a
+
+def text3d(name, txt, C, right, normal, height, depth, mat, coll, max_w=None, export=True):
+    """Extruded block letters as a mesh. C = centre of the front face, letters read along `right`, facing `normal`."""
+    cu = bpy.data.curves.new(name, "FONT"); cu.body = txt; cu.align_x = "CENTER"; cu.align_y = "CENTER"
+    cu.size = 1.0; cu.extrude = 0.5; cu.resolution_u = 2; cu.space_character = 1.08
+    tob = bpy.data.objects.new(name + "_tmp", cu); bpy.context.scene.collection.objects.link(tob)
+    me = bpy.data.meshes.new_from_object(tob.evaluated_get(bpy.context.evaluated_depsgraph_get()))
+    bpy.data.objects.remove(tob, do_unlink=True); bpy.data.curves.remove(cu)
+    xs_ = [v.co.x for v in me.vertices]; ys_ = [v.co.y for v in me.vertices]
+    w_, h_ = max(xs_) - min(xs_), max(ys_) - min(ys_)
+    k_ = height / h_
+    if max_w and w_ * k_ > max_w:
+        k_ = max_w / w_
+    cx_, cy_ = (max(xs_) + min(xs_)) / 2, (max(ys_) + min(ys_)) / 2
+    right = right.normalized(); normal = normal.normalized(); up_ = normal.cross(right) * -1
+    up_ = right.cross(normal) * -1 if up_.z < 0 else up_
+    for v in me.vertices:
+        x, y, z = (v.co.x - cx_) * k_, (v.co.y - cy_) * k_, (v.co.z + 0.5) / 1.0 * depth - depth
+        v.co = C + right * x + up_ * y + normal * (z + depth)
+    me.materials.clear(); me.materials.append(mat)
+    ob = bpy.data.objects.new(name, me)
+    if export:
+        coll.objects.link(ob); MINE_OBJECTS.append(ob)
+    else:
+        STATE["stage"].objects.link(ob)
+    return ob
+
 def sep(ob):
     SEPARATE.add(ob.name)
     return ob
@@ -123,21 +163,30 @@ for k in range(9):                                    # stone path steps down th
     bevbox(f"Path Step {k}", -6.0 + 0.3 * math.sin(k), 6.0 + 0.3 * math.sin(k), y1 - 2.0, y1, z - 1.2, z, STONE, C_FOUND, b=0.2)
     if k % 3 == 1:
         for s_ in (-1, 1):
-            P_ = V(s_ * 7.6, y1 - 1.0, z)
+            P_ = V(-7.6 if s_ < 0 else 13.6, y1 - 1.0, z)
             cyl(f"Path Lantern Post {k}{s_}", P_, P_ + V(0, 0, 3.0), 0.18, 0.16, STEEL, C_FOUND, n=6)
             abox(f"Path Lantern {k}{s_}", P_.x - 0.5, P_.x + 0.5, P_.y - 0.5, P_.y + 0.5, z + 3.0, z + 4.0, LAMP, C_FOUND)
             cone(f"Path Lantern Cap {k}{s_}", P_ + V(0, 0, 4.0), P_ + V(0, 0, 4.7), 0.75, STEEL, C_FOUND, n=4)
-# practical ramp route along the left side of the landing
-hexa("Access Ramp", [V(-24.0, LAND_Y0 - 5.6, -2.0), V(-14.0, LAND_Y0 - 5.6, -2.0), V(-14.0, LAND_Y0 + 3.0, -2.0), V(-24.0, LAND_Y0 + 3.0, -2.0),
-                     V(-24.0, LAND_Y0 - 5.6, -0.0), V(-14.0, LAND_Y0 - 5.6, -0.0), V(-14.0, LAND_Y0 + 3.0, FZ), V(-24.0, LAND_Y0 + 3.0, FZ)], STONE, C_FOUND)
-hexa("Ramp Surface", [V(-23.6, LAND_Y0 - 5.6, -0.0), V(-14.4, LAND_Y0 - 5.6, -0.0), V(-14.4, LAND_Y0 + 3.0, FZ), V(-23.6, LAND_Y0 + 3.0, FZ),
-                      V(-23.6, LAND_Y0 - 5.6, 0.04), V(-14.4, LAND_Y0 - 5.6, 0.04), V(-14.4, LAND_Y0 + 3.0, FZ + 0.04), V(-23.6, LAND_Y0 + 3.0, FZ + 0.04)], CONC, C_FOUND)
+# walkable ramp running right beside the steps (same drop, ~25 degrees, no step-up lips)
+RY0, RY1, RZ0 = LAND_Y0 - 18.0, LAND_Y0, FZ - 8.55
+hexa("Access Ramp", [V(7.0, RY0, RZ0 - 1.2), V(12.6, RY0, RZ0 - 1.2), V(12.6, RY1, RZ0 - 1.2), V(7.0, RY1, RZ0 - 1.2),
+                     V(7.0, RY0, RZ0), V(12.6, RY0, RZ0), V(12.6, RY1, FZ - 0.02), V(7.0, RY1, FZ - 0.02)], STONE, C_FOUND)
+sep(hexa("Ramp Surface", [V(7.3, RY0, RZ0 - 0.1), V(12.3, RY0, RZ0 - 0.1), V(12.3, RY1, FZ - 0.08), V(7.3, RY1, FZ - 0.08),
+                          V(7.3, RY0, RZ0 + 0.04), V(12.3, RY0, RZ0 + 0.04), V(12.3, RY1, FZ + 0.02), V(7.3, RY1, FZ + 0.02)], CONC, C_FOUND))
+hexa("Ramp Rail", [V(12.6, RY0, RZ0), V(13.0, RY0, RZ0), V(13.0, RY1, FZ), V(12.6, RY1, FZ),
+                   V(12.6, RY0, RZ0 + 1.4), V(13.0, RY0, RZ0 + 1.4), V(13.0, RY1, FZ + 1.4), V(12.6, RY1, FZ + 1.4)], STEEL, C_FOUND)
+for k in range(5):
+    t_ = k / 4
+    y_, z_ = RY0 + (RY1 - RY0) * t_, RZ0 + (FZ - RZ0) * t_
+    cyl(f"Ramp Rail Post {k}", V(12.8, y_, z_ - 0.5), V(12.8, y_, z_ + 1.4), 0.14, 0.14, STEEL, C_FOUND, n=6)
+for k in range(10):                                   # flagstone path continuing down the hill from the bottom step / ramp
+    y_ = RY0 - 2.4 - k * 2.6
+    w_ = 9.5 + 0.6 * math.sin(k * 1.7)
+    bevbox(f"Path Flagstone {k}", -w_ + 3.0 + 0.8 * math.sin(k), w_ + 3.0 + 0.8 * math.sin(k), y_ - 2.2, y_, RZ0 - 0.9 - 0.05 * k, RZ0 - 0.05 * k, STONE, C_FOUND, b=0.25)
 for s in (-1, 1):                                     # chunky landing bollards with low lights
-    for x in (s * 12.6,):
+    for x in (s * 13.3,):
         bevbox(f"Landing Bollard {s}", x - 0.7, x + 0.7, LAND_Y0 + 0.3, LAND_Y0 + 1.7, FZ, FZ + 2.4, STEEL, C_FOUND, b=0.2)
         abox(f"Bollard Light {s}", x - 0.5, x + 0.5, LAND_Y0 + 0.25, LAND_Y0 + 0.3, FZ + 1.6, FZ + 2.0, LAMP, C_FOUND)
-hexa("Ramp Rail", [V(-24.0, LAND_Y0 - 5.6, 0.0), V(-23.6, LAND_Y0 - 5.6, 0.0), V(-23.6, LAND_Y0 + 3.0, FZ), V(-24.0, LAND_Y0 + 3.0, FZ),
-                   V(-24.0, LAND_Y0 - 5.6, 1.2), V(-23.6, LAND_Y0 - 5.6, 1.2), V(-23.6, LAND_Y0 + 3.0, FZ + 1.2), V(-24.0, LAND_Y0 + 3.0, FZ + 1.2)], STEEL, C_FOUND)
 
 # ------------------------------------------------------------------ SHELL
 abox("Interior Floor", -W + T, W - T, -D + T, D - T, FZ - 0.1, FZ, FLOOR, C_SHELL)
@@ -174,6 +223,7 @@ for s in (-1, 1):
 # sign panel above the entrance (clean surface for Roblox text)
 bevbox("Sign Frame", -12.0, 12.0, fy0 - 1.4, fy0 + 0.2, EH + 2.4, EH + 6.6, STEEL, C_SHELL, b=0.3)
 sep(abox("Sign Surface", -11.2, 11.2, fy0 - 1.5, fy0 - 1.38, EH + 2.9, EH + 6.1, BLUE2, C_SHELL))
+sep(text3d("Sign Text", "MACHINE WORKSHOP", V(0, fy0 - 1.62, EH + 4.5), V(1, 0, 0), V(0, -1, 0), 2.2, 0.12, SIGN_GOLD, C_SHELL, max_w=20.4))
 for s in (-1, 1):
     dot(f"Sign Bolt {s}a", V(s * 11.6, fy0 - 1.45, EH + 3.0), 0.18, COPPER, C_SHELL)
     dot(f"Sign Bolt {s}b", V(s * 11.6, fy0 - 1.45, EH + 6.0), 0.18, COPPER, C_SHELL)
@@ -181,7 +231,8 @@ for s in (-1, 1):
 for z in (FZ + 6.0, FZ + 12.5, FZ + 19.0):
     abox(f"Front Band {z:.0f} L", -W, -EW - 2.2, -D - 0.15, -D, z, z + 1.0, BAND, C_SHELL)
     abox(f"Front Band {z:.0f} R", EW + 2.2, W, -D - 0.15, -D, z, z + 1.0, BAND, C_SHELL)
-    abox(f"Rear Band {z:.0f}", -W, W, D, D + 0.15, z, z + 1.0, BAND, C_SHELL)
+    for x0_, x1_ in ((-W, -22.5), (-13.5, -4.5), (4.5, 13.5), (22.5, W)) if z < FZ + 11.0 else ((-W, W),):
+        abox(f"Rear Band {z:.0f} {x0_:.0f}", x0_, x1_, D, D + 0.15, z, z + 1.0, BAND, C_SHELL)
     for s_ in (-1, 1):
         abox(f"Side Band {z:.0f}{s_}", min(s_ * W, s_ * (W + 0.15)), max(s_ * W, s_ * (W + 0.15)), -D, D, z, z + 1.0, BAND, C_SHELL)
 for s_ in (-1, 1):                                    # red banners with gold stripe beside the entrance
@@ -305,7 +356,7 @@ lathe("Exhaust Cap", V(-W - 1.0, 14.0, RZ + 4.0), [(1.2, 0), (1.2, 0.4), (0.9, 0
 for k in range(5):
     y = -20 + k * 10.0
     bevbox(f"Ceiling Beam {k}", -W + T, W - T, y - 0.6, y + 0.6, CEIL - 1.4, CEIL, STEEL, C_SHELL, b=0.15)
-for (x, y) in ((-22, -15), (22, -15), (-22, 5), (22, 5), (-22, 20), (22, 20), (0, -20), (0, 20)):
+for (x, y) in ((-22, -15), (22, -15), (-22, 5), (22, 5), (-22, 20), (22, 20), (0, -20), (0, 20), (-28, -4), (28, -4), (12, -10), (-18, 24), (18, 24)):
     cyl(f"Lamp Cord {x}{y}", V(x, y, CEIL - 1.4), V(x, y, CEIL - 3.2), 0.06, 0.06, STEEL, C_SHELL, n=4)
     lathe(f"Lamp Shade {x}{y}", V(x, y, CEIL - 4.4), [(0.4, 1.2), (1.6, 0.0), (1.7, -0.1)], STEEL, C_SHELL, n=12, smooth=False)
     cyl(f"Lamp Glow {x}{y}", V(x, y, CEIL - 4.45), V(x, y, CEIL - 4.35), 1.3, 1.3, LAMP, C_SHELL, n=12)
@@ -344,6 +395,23 @@ for k in range(4):                                   # four chunky projector uni
     sep(pr)
     sep(cyl(f"Projector {k + 1} Lens", P + V(0, 0, 0.75) - d * 0.55, P + V(0, 0, 1.2) - d * 1.0, 0.38, 0.32, CYAN, C_SHOW, n=12))
 PLACEHOLDER = sep(obox("Display Placeholder", SC + V(0, 0, 9.0), (6.0, 6.0, 6.0), X_AX, Y_AX, Z_AX, HOLO, C_SHOW))
+# machine hologram: an example dropper machine floating over the platform, lit by four projector beams
+HZ = SC + V(0, 0, 5.0)
+lathe("Hologram Floor Glow", SC + V(0, 0, 1.78), [(4.4, 0), (4.4, 0.02), (0.01, 0.02)], HOLO_B, C_SHOW, n=32)
+bevbox("Hologram Machine Base", HZ.x - 2.2, HZ.x + 2.2, HZ.y - 2.2, HZ.y + 2.2, HZ.z, HZ.z + 0.8, HOLO_M, C_SHOW, b=0.15)
+bevbox("Hologram Machine Body", HZ.x - 1.6, HZ.x + 1.6, HZ.y - 1.6, HZ.y + 1.6, HZ.z + 0.8, HZ.z + 3.6, HOLO_M, C_SHOW, b=0.2)
+lathe("Hologram Machine Hopper", HZ + V(0, 0, 3.6), [(1.0, 0), (2.0, 1.4), (2.2, 1.6)], HOLO_M, C_SHOW, n=8, smooth=False)
+cyl("Hologram Machine Chute", HZ + V(0, -1.6, 1.4), HZ + V(0, -2.6, 0.9), 0.55, 0.55, HOLO_M, C_SHOW, n=8)
+for s_ in (-1, 1):
+    torus(f"Hologram Machine Gear {s_}", HZ + V(s_ * 1.7, 0, 2.2), X_AX, Y_AX, 0.9, 0.2, HOLO_M, C_SHOW, n_major=14, n_minor=4)
+    cyl(f"Hologram Machine Pipe {s_}", HZ + V(s_ * 1.0, 1.0, 3.6), HZ + V(s_ * 1.0, 1.0, 6.0), 0.3, 0.3, HOLO_M, C_SHOW, n=6)
+obox("Hologram Ore", HZ + V(0.0, -3.0, 0.0), (0.7, 0.7, 0.7), V(0.8, 0.6, 0), V(-0.6, 0.8, 0), Z_AX, HOLO_M, C_SHOW)
+torus("Hologram Orbit Ring", HZ + V(0, 0, 2.0), V(0.0, 0.25, 1).normalized(), X_AX, 3.4, 0.07, HOLO_M, C_SHOW, n_major=40, n_minor=4)
+for k in range(4):
+    a = math.pi / 4 + k * math.pi / 2
+    d = V(math.cos(a), math.sin(a), 0)
+    L0 = SC + d * 5.7 + V(0, 0, 2.0) + V(0, 0, 1.2) - d * 1.0
+    cone(f"Hologram Beam {k}", L0, HZ + V(0, 0, 1.5) + d * 1.4, 0.35, HOLO_B, C_SHOW, n=6)
 IP = SC + V(0, -R8 - 0.9, 0)                          # small angled information panel at the front
 bevbox("Info Panel Post", IP.x - 0.4, IP.x + 0.4, IP.y - 0.3, IP.y + 0.3, FZ, FZ + 2.6, STEEL, C_SHOW, b=0.1)
 sep(obox("Info Panel Screen", IP + V(0, -0.2, 2.9), (3.0, 0.15, 1.6), X_AX, V(0, 1, 0.6).normalized(), V(0, -0.6, 1).normalized(), SCREEN, C_SHOW))
@@ -414,6 +482,21 @@ sep(obox("Fusion Terminal Screen", TM + V(0.95, 0.15, 3.0), (0.08, 1.6, 1.1), V(
 abox("Fusion Terminal Light", TM.x + 0.9, TM.x + 0.96, TM.y - 0.4, TM.y + 0.7, FZ + 2.0, FZ + 2.2, FUSE, C_FUSE)
 bevbox("Fusion Back Panel", FX0 - 0.2, FX0 + 0.4, -8.0, 8.0, FZ + 1.0, FZ + 12.4, BLUE2, C_FUSE, b=0.1)
 
+# ---- station name boards (lit letters, readable from the entrance)
+def label_board(key, txt, C, right, normal, w, h, mat, coll, th=1.4):
+    up_ = V(0, 0, 1)
+    right = up_.cross(normal)                         # reads left-to-right for someone facing the board
+    obox(f"{key} Label Board", C - normal * 0.15, (w, 0.3, h), right, normal * -1, up_, LBL_BOARD, coll) if abs(normal.z) < 0.5 else None
+    for s_ in (-1, 1):
+        obox(f"{key} Label Edge {s_}", C + up_ * s_ * (h / 2 - 0.08) + normal * 0.02, (w, 0.08, 0.16), right, normal * -1, up_, mat, coll)
+    return sep(text3d(f"{key} Label", txt, C + normal * 0.02, right, normal, th, 0.1, mat, coll, max_w=w - 1.0))
+ALB = AC + V(0, 0, 8.6) - face * 1.6                   # archive: board on a post behind the console
+bevbox("Archive Label Post L", (ALB - side * 2.2).x - 0.25, (ALB - side * 2.2).x + 0.25, (ALB - side * 2.2).y + 0.2, (ALB - side * 2.2).y + 0.7, FZ, FZ + 8.0, STEEL, C_ARCH, b=0.08)
+bevbox("Archive Label Post R", (ALB + side * 2.2).x - 0.25, (ALB + side * 2.2).x + 0.25, (ALB + side * 2.2).y + 0.2, (ALB + side * 2.2).y + 0.7, FZ, FZ + 8.0, STEEL, C_ARCH, b=0.08)
+label_board("Archive", "ARCHIVE", ALB + V(0, 0, 0.6), side * -1, face, 6.4, 2.2, LBL_ARCH, C_ARCH)
+label_board("Fusion", "FUSION", V(FX0 + 6.75, 0, FZ + 16.0), V(0, -1, 0), V(1, 0, 0), 10.0, 2.6, LBL_FUSE, C_FUSE, th=1.8)
+bevbox("Fusion Label Hanger", FX0 + 6.4, FX0 + 6.6, -4.5, 4.5, FZ + 14.0, FZ + 14.8, STEEL, C_FUSE, b=0.05)
+
 # ------------------------------------------------------------------ STAR / EVOLUTION STATION (right wall; faces -X)
 EX1, EX0 = W - T, W - T - 9.0
 bevbox("Evolution Base Plinth", EX0, EX1, -8.0, 8.0, FZ, FZ + 0.8, STEEL, C_EVO, b=0.3)
@@ -435,7 +518,28 @@ sep(blade("Evolution Star Emblem", STAR, 0.25, GOLD, C_EVO))
 for s in (-1, 1):                                    # two symmetrical preview plinths
     PP = V(EX0 + 3.6, s * 6.0, FZ + 0.8)
     bevbox(f"Preview Plinth Base {s}", PP.x - 1.5, PP.x + 1.5, PP.y - 1.5, PP.y + 1.5, FZ + 0.8, FZ + 2.0, STEEL, C_EVO, b=0.2)
-    sep(bevbox(f"Evolution Preview Plinth {'L' if s < 0 else 'R'}", PP.x - 1.2, PP.x + 1.2, PP.y - 1.2, PP.y + 1.2, FZ + 2.0, FZ + 2.5, STEEL2, C_EVO, b=0.12))
+    bevbox(f"Preview Column {s}", PP.x - 1.2, PP.x + 1.2, PP.y - 1.2, PP.y + 1.2, FZ + 2.0, FZ + 4.2, STEEL, C_EVO, b=0.15)
+    pm = PATH_A if s < 0 else PATH_B
+    for c_ in (-1, 1):
+        abox(f"Preview Column Glow {s}{c_}", PP.x - 1.26, PP.x - 1.2, PP.y + c_ * 0.8 - 0.12, PP.y + c_ * 0.8 + 0.12, FZ + 2.2, FZ + 4.0, pm, C_EVO)
+    sep(bevbox(f"Evolution Preview Plinth {'L' if s < 0 else 'R'}", PP.x - 1.6, PP.x + 1.6, PP.y - 1.6, PP.y + 1.6, FZ + 4.2, FZ + 4.7, STEEL2, C_EVO, b=0.12))
+    torus(f"Preview Ring {s}", V(PP.x, PP.y, FZ + 4.75), Z_AX, Y_AX, 1.35, 0.08, pm, C_EVO, n_major=20, n_minor=4)
+    # hologram of the upgraded machine for this path (swap for the real model in Studio)
+    HP = V(PP.x, PP.y, FZ + 4.75)
+    tag = "A" if s < 0 else "B"
+    bevbox(f"Path {tag} Holo Base", HP.x - 1.0, HP.x + 1.0, HP.y - 1.0, HP.y + 1.0, HP.z, HP.z + 0.5, pm, C_EVO, b=0.1)
+    bevbox(f"Path {tag} Holo Body", HP.x - 0.75, HP.x + 0.75, HP.y - 0.75, HP.y + 0.75, HP.z + 0.5, HP.z + 2.0, pm, C_EVO, b=0.12)
+    if s < 0:                                         # path A: heavier furnace-style upgrade (chimney + gear)
+        cyl(f"Path A Holo Chimney", HP + V(0.3, 0.3, 2.0), HP + V(0.3, 0.3, 3.3), 0.3, 0.25, pm, C_EVO, n=8)
+        torus(f"Path A Holo Gear", HP + V(-0.8, 0, 1.3), X_AX, Y_AX, 0.55, 0.14, pm, C_EVO, n_major=12, n_minor=4)
+    else:                                             # path B: crystal/energy upgrade (spire + floating crystal)
+        cone(f"Path B Holo Spire", HP + V(0, 0, 2.0), HP + V(0, 0, 3.0), 0.6, pm, C_EVO, n=6)
+        crystal(f"Path B Holo Crystal", HP + V(0, 0, 3.3), Z_AX, 1.0, 0.35, pm, C_EVO)
+    label_board(f"Path {tag}", f"PATH {tag}", V(EX1 - 0.75, PP.y + s * 0.7, FZ + 9.4), V(0, 1, 0), V(-1, 0, 0), 4.0, 1.7, pm, C_EVO, th=1.0)
+    for c_ in (0, 1, 2):                              # chevrons on the floor pointing to each path
+        cy_ = s * (1.7 + c_ * 1.0)
+        beam(f"Path Chevron {s}{c_}a", V(PC.x - 3.2, cy_ + s * 0.5, FZ + 0.84), V(PC.x - 3.2 - 0.5, cy_, FZ + 0.84), 0.18, 0.04, Z_AX, pm, C_EVO)
+        beam(f"Path Chevron {s}{c_}b", V(PC.x - 3.2, cy_ + s * 0.5, FZ + 0.84), V(PC.x - 3.2 + 0.5, cy_, FZ + 0.84), 0.18, 0.04, Z_AX, pm, C_EVO)
     abox(f"Preview Plinth Accent {s}", PP.x - 1.54, PP.x - 1.5, PP.y - 1.0, PP.y + 1.0, FZ + 1.2, FZ + 1.5, PURP, C_EVO)
     small = [V(PP.x - 1.55, PP.y + 0.35 * math.cos(math.pi / 2 + k * math.pi / 5) * (1 if k % 2 == 0 else 0.42),
                FZ + 1.75 + 0.35 * math.sin(math.pi / 2 + k * math.pi / 5) * (1 if k % 2 == 0 else 0.42)) for k in range(10)]
@@ -444,6 +548,7 @@ for s in (-1, 1):                                    # two symmetrical preview p
     pts = [PC + V(-1.6, 0, 0.82), PC + V(-2.4, s * 1.4, 0.82), V(PP.x - 0.6, PP.y - s * 1.6, FZ + 0.82)]
     for j in range(2):
         beam(f"Light Channel {s}{j}", pts[j], pts[j + 1], 0.35, 0.05, Z_AX, PURP, C_EVO)
+label_board("Evolution", "STARS & EVOLUTION", V(EX1 - 0.75, 0, FZ + 16.0), V(0, 1, 0), V(-1, 0, 0), 15.5, 2.6, LBL_EVO, C_EVO, th=1.5)
 CS = V(EX0 - 0.6, -8.0, FZ)                            # control screen facing the player (front corner)
 bevbox("Evolution Screen Stand", CS.x - 0.5, CS.x + 0.5, CS.y - 0.5, CS.y + 0.5, FZ, FZ + 3.2, STEEL, C_EVO, b=0.12)
 obox("Evolution Screen Frame", CS + V(-0.1, 0, 3.9), (0.4, 3.0, 2.0), V(-1, 0, 0.3).normalized() * -1, Y_AX, V(0.3, 0, 1).normalized(), STEEL, C_EVO)
@@ -466,6 +571,22 @@ for k, (x, acc) in enumerate(zip(AL, (CYAN, FUSE, PURP))):
     bevbox(f"Alcove Plinth Base {k}", x - 2.2, x + 2.2, D + 0.4, D + 3.6, FZ, FZ + 2.6, STEEL, C_REAR, b=0.2)
     sep(bevbox(f"Collection Display {k + 1}", x - 1.8, x + 1.8, D + 0.7, D + 3.3, FZ + 2.6, FZ + 3.0, STEEL2, C_REAR, b=0.1))
     sep(obox(f"Collection Plaque {k + 1}", V(x, D + 0.35, FZ + 1.5), (2.6, 0.08, 1.0), X_AX, Y_AX, Z_AX, PLAQUE, C_REAR))
+    RP = V(x, D + 2.0, FZ + 3.0)                     # example reward on each display (swap freely)
+    if k == 0:                                        # crystal ore cluster
+        crystal_cluster("Collection Reward 1", RP, 6, 1.4, REW_1, ROCK, C_REAR)
+    elif k == 1:                                      # golden gear trophy
+        lathe("Reward Trophy Stem", RP, [(0.9, 0), (0.9, 0.3), (0.35, 0.6), (0.35, 1.3), (0.6, 1.5)], GOLD, C_REAR, n=12, smooth=False)
+        sep(torus("Collection Reward 2", RP + V(0, 0, 2.6), Y_AX, X_AX, 1.0, 0.3, GOLD, C_REAR, n_major=16, n_minor=6))
+        for t_ in range(8):
+            a_ = t_ * math.pi / 4
+            obox(f"Reward Gear Tooth {t_}", RP + V(1.4 * math.cos(a_), 0, 2.6 + 1.4 * math.sin(a_)), (0.5, 0.5, 0.5), V(math.cos(a_), 0, math.sin(a_)), Y_AX, V(-math.sin(a_), 0, math.cos(a_)), GOLD, C_REAR)
+        dot("Reward Gear Gem", RP + V(0, -0.1, 2.6), 0.45, FUSE, C_REAR)
+    else:                                             # amethyst star crown
+        lathe("Reward Crown", RP, [(1.3, 0), (1.3, 0.8), (1.1, 0.8), (1.1, 0.2), (0.01, 0.2)], GOLD, C_REAR, n=10, smooth=False)
+        for t_ in range(5):
+            a_ = t_ * 2 * math.pi / 5
+            cone(f"Reward Crown Spike {t_}", RP + V(1.2 * math.cos(a_), 1.2 * math.sin(a_), 0.8), RP + V(1.3 * math.cos(a_), 1.3 * math.sin(a_), 1.7), 0.3, GOLD, C_REAR, n=4)
+        sep(crystal("Collection Reward 3", RP + V(0, 0, 0.9), Z_AX, 1.8, 0.5, REW_3, C_REAR))
     abox(f"Plinth Accent {k}", x - 2.24, x + 2.24, D + 0.36, D + 0.4, FZ + 2.3, FZ + 2.45, acc, C_REAR)
     cyl(f"Alcove Spot Light {k}", V(x, D + 2.0, AH - 0.05), V(x, D + 2.0, AH - 0.25), 1.0, 1.0, LAMP, C_REAR, n=12)
 
@@ -570,7 +691,35 @@ for _, model in ipairs(game:GetService("Selection"):Get()) do
 					light.Parent = p
 				end
 			end
-			if p.Name == "DisplayPlaceholder" then p.CanCollide = false end
+			if p.Name == "DisplayPlaceholder" or p.Name:find("Hologram") or p.Name == "HologramBeam" then p.CanCollide = false; p.CastShadow = false end
+		end
+	end
+end
+-- editable text: reward names + unlock requirements on the three collection plaques (change the strings freely)
+local PLAQUES = {
+	CollectionPlaque1 = {"Crystal Core", "Unlock: Reach $1M total cash"},
+	CollectionPlaque2 = {"Golden Gear", "Unlock: Fuse 10 machines"},
+	CollectionPlaque3 = {"Amethyst Crown", "Unlock: Evolve a machine to 5 stars"},
+}
+for _, model in ipairs(game:GetService("Selection"):Get()) do
+	local centre = model:GetBoundingBox().Position
+	for _, p in ipairs(model:GetDescendants()) do
+		local t = p:IsA("BasePart") and PLAQUES[(p.Name:gsub("%%.%%d+$", ""))]
+		if t then
+			local best, bestDot = Enum.NormalId.Front, -2
+			for _, id in ipairs(Enum.NormalId:GetEnumItems()) do   -- face that points into the room
+				local d = p.CFrame:VectorToWorldSpace(Vector3.FromNormalId(id)):Dot((centre - p.Position).Unit)
+				if d > bestDot then best, bestDot = id, d end
+			end
+			local gui = p:FindFirstChild("PlaqueGui") or Instance.new("SurfaceGui")
+			gui.Name = "PlaqueGui"; gui.Face = best; gui.SizingMode = Enum.SurfaceGuiSizingMode.PixelsPerStud; gui.PixelsPerStud = 60; gui.Parent = p
+			for i, txt in ipairs(t) do
+				local l = gui:FindFirstChild("Line" .. i) or Instance.new("TextLabel")
+				l.Name = "Line" .. i; l.BackgroundTransparency = 1; l.TextScaled = true; l.Font = Enum.Font.GothamBold
+				l.TextColor3 = i == 1 and Color3.fromRGB(30, 34, 44) or Color3.fromRGB(90, 90, 100)
+				l.Size = UDim2.fromScale(0.9, i == 1 and 0.5 or 0.32); l.Position = UDim2.fromScale(0.05, i == 1 and 0.06 or 0.6)
+				l.Text = txt; l.Parent = gui
+			end
 		end
 	end
 end
@@ -601,8 +750,10 @@ if RENDER:
         if rot: ob.rotation_euler = rot
         stage.objects.link(ob)
     light("Sun", 'SUN', V(0, 0, 80), 3.5, (1.0, 0.96, 0.9), rot=Euler((math.radians(50), 0, math.radians(-35))))
-    for (x, y) in ((-20, -12), (20, -12), (-20, 10), (20, 10), (0, 0)):
-        light(f"Room Fill {x}{y}", 'POINT', V(x, y, CEIL - 5) * SCALE, 4500 * SCALE * SCALE, (1.0, 0.95, 0.88), size=4 * SCALE)
+    for (x, y) in ((-20, -12), (20, -12), (-20, 10), (20, 10), (0, 0), (0, 22)):
+        light(f"Room Fill {x}{y}", 'POINT', V(x, y, CEIL - 5) * SCALE, 6500 * SCALE * SCALE, (1.0, 0.95, 0.88), size=4 * SCALE)
+    for n_, (x, y), col in (("Fusion", (-26, 0), (1.0, 0.75, 0.5)), ("Evo", (26, 0), (0.85, 0.7, 1.0)), ("Archive", (10, -10), (0.7, 0.95, 1.0)), ("Show", (0, 0), (0.7, 0.95, 1.0))):
+        light(f"Station {n_}", 'POINT', V(x, y, FZ + 9) * SCALE, 2200 * SCALE * SCALE, col, size=2 * SCALE)
     cams = {
         "exterior_hero": (V(62, -96, 44), V(0, -6, 10), 32, (1600, 1100)),
         "exterior_front": (V(0, -112, 18), V(0, 0, 12), 32, (1600, 1100)),
@@ -610,7 +761,7 @@ if RENDER:
         "interior_entrance": (V(0, -25, FZ + 7.0), V(0, 6, FZ + 5.0), 18, (1600, 1100)),
         "interior_overview": (V(-28, -24, FZ + 19), V(4, 6, FZ + 2), 16, (1600, 1100)),
         "interior_fusion": (V(-6, -16, FZ + 9), V(-28, 0, FZ + 6), 24, (1400, 1100)),
-        "interior_evolution": (V(6, -16, FZ + 9), V(29, 0, FZ + 6), 24, (1400, 1100)),
+        "interior_evolution": (V(2, -4, FZ + 9), V(29, 0, FZ + 6), 22, (1400, 1100)),
         "interior_rear": (V(0, 4, FZ + 8), V(0, 30, FZ + 4), 22, (1600, 1000)),
         "cutaway_top": (V(0, -46, 120), V(0, 0, 0), 38, (1500, 1300)),
     }
