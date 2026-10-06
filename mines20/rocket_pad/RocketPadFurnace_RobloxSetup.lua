@@ -1,0 +1,89 @@
+-- RocketPadFurnace: colours, Roblox materials, glow lights, a working SELL script and a conveyor ramp.
+-- 1. Import RocketPadFurnace_Roblox.fbx (Import 3D, Scale Unit = Stud, untick "Import as single mesh", tick Anchored).
+-- 2. Select the imported model.  3. View > Command Bar: paste this file, press Enter.
+-- Ore (Parts named "Ore" with a "Value" attribute, as the mine droppers make) that touches the intake is sold:
+-- Value x Multiplier goes to the owner's leaderstats Cash (OwnerUserId attribute, else the first player).
+-- The ramp pushes ore into the intake (ConveyorSpeed attribute).
+local LOOK = {
+	BurnZone = {"ForceField", 255, 170, 60, 0.7},
+	Conveyor = {"DiamondPlate", 50, 52, 58, 0},
+	EngineDark = {"Metal", 50, 52, 58, 0},
+	FlameCore = {"Neon", 140, 200, 255, 0},
+	FloodLight = {"Neon", 255, 250, 220, 0},
+	GantrySteel = {"Metal", 140, 60, 40, 0},
+	LaunchPad = {"Concrete", 120, 122, 128, 0},
+	PadStripe = {"SmoothPlastic", 240, 196, 20, 0},
+	Porthole = {"Neon", 120, 200, 255, 0},
+	RocketFlame = {"Neon", 255, 170, 60, 0},
+	RocketRed = {"SmoothPlastic", 220, 40, 40, 0},
+	RocketWhite = {"SmoothPlastic", 238, 240, 244, 0},
+	Smoke = {"SmoothPlastic", 200, 200, 204, 0.2}
+}
+local LIGHTS = {
+	FloodLight = {255, 240, 190, 10, 1.2},
+	RocketFlame = {255, 130, 20, 18, 2.4}
+}
+local model = game:GetService("Selection"):Get()[1]
+if not (model and model:IsA("Model")) then model = workspace:FindFirstChild("RocketPadFurnace_Roblox", true) or workspace:FindFirstChild("RocketPadFurnace", true) end
+assert(model, "Select the imported RocketPadFurnace model first.")
+local styled, lit, burn, conv = 0, 0, nil, {}
+for _, p in ipairs(model:GetDescendants()) do
+	if p:IsA("BasePart") then
+		local key = p.Name:gsub("%.%d+$", "")
+		local l = LOOK[key]
+		pcall(function()
+			p.Anchored = true
+			for _, sa in ipairs(p:GetChildren()) do if sa:IsA("SurfaceAppearance") then sa:Destroy() end end
+			if l then
+				p.Material = Enum.Material[l[1]]; p.Color = Color3.fromRGB(l[2], l[3], l[4]); p.Transparency = l[5]
+				if p:IsA("MeshPart") then p.TextureID = "" end
+				styled += 1
+			end
+			local L = LIGHTS[key]
+			if L then
+				local light = p:FindFirstChild("MineLight") or Instance.new("PointLight")
+				light.Name = "MineLight"; light.Color = Color3.fromRGB(L[1], L[2], L[3]); light.Range = L[4]; light.Brightness = L[5]
+				light.Parent = p
+				lit += 1
+			end
+		end)
+		if key == "BurnZone" then burn = p end
+		if key == "Conveyor" then table.insert(conv, p) end
+	end
+end
+if burn then
+	burn.Name = "Burn"; burn.CanCollide = false; burn.CanTouch = true; burn.CanQuery = false
+	model:SetAttribute("Multiplier", model:GetAttribute("Multiplier") or 2)
+	model:SetAttribute("ConveyorSpeed", model:GetAttribute("ConveyorSpeed") or 8)
+	for _, p in ipairs(conv) do
+		p.AssemblyLinearVelocity = (burn.Position - p.Position).Unit * model:GetAttribute("ConveyorSpeed")
+	end
+	local old = model:FindFirstChild("Furnace"); if old then old:Destroy() end
+	local s = Instance.new("Script")
+	s.Name = "Furnace"
+	s.Source = [[
+local Players = game:GetService("Players")
+local furnace = script.Parent
+local burn = furnace:FindFirstChild("Burn", true)
+local function owner()
+	local id = furnace:GetAttribute("OwnerUserId")
+	if id then return Players:GetPlayerByUserId(id) end
+	return Players:GetPlayers()[1]
+end
+burn.Touched:Connect(function(hit)
+	if hit.Name ~= "Ore" or hit:GetAttribute("Sold") then return end
+	hit:SetAttribute("Sold", true)
+	local value = (hit:GetAttribute("Value") or 0) * (furnace:GetAttribute("Multiplier") or 1)
+	local plr = owner()
+	local stats = plr and plr:FindFirstChild("leaderstats")
+	local cash = stats and stats:FindFirstChild("Cash")
+	if cash then cash.Value += value end
+	hit:Destroy()
+end)
+]]
+	s.Parent = model
+end
+print(("[RocketPadFurnace] %d parts coloured, %d lights, %d conveyor parts, sell script %s"):format(styled, lit, #conv, burn and "added" or "NOT found"))
+-- No leaderstats yet? Script in ServerScriptService:
+--   game.Players.PlayerAdded:Connect(function(p) local ls = Instance.new("Folder"); ls.Name = "leaderstats"; ls.Parent = p
+--   local c = Instance.new("IntValue"); c.Name = "Cash"; c.Parent = ls end)
