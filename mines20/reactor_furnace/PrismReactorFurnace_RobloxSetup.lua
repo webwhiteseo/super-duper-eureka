@@ -8,6 +8,7 @@ local LOOK = {
 	AmberNeon = {"Neon", 255, 180, 40, 0},
 	Black = {"SmoothPlastic", 14, 14, 18, 0},
 	BurnZone = {"ForceField", 120, 240, 255, 0.6},
+	Conveyor = {"DiamondPlate", 30, 32, 38, 0},
 	DarkPlate = {"DiamondPlate", 58, 60, 66, 0},
 	PoolGlass = {"Glass", 170, 240, 255, 0.5},
 	PrismPool = {"Neon", 90, 240, 255, 0},
@@ -76,6 +77,19 @@ end)
 ]]
 	s.Parent = model
 end
+-- conveyor ramp: push ore up the ramp and into the pool
+local speed = model:GetAttribute("ConveyorSpeed") or 8
+model:SetAttribute("ConveyorSpeed", speed)
+local nConv = 0
+for _, p in ipairs(model:GetDescendants()) do
+	if p:IsA("BasePart") and p.Name:gsub("%.%d+$", "") == "Conveyor" and burn then
+		local dir = burn.Position - p.Position
+		p.AssemblyLinearVelocity = dir.Unit * speed
+		p.Anchored = true
+		nConv += 1
+	end
+end
+print(("[PrismReactorFurnace] conveyor ramp parts: %d (speed attribute ConveyorSpeed)"):format(nConv))
 print(("[PrismReactorFurnace] %d parts coloured, %d lights, sell script %s"):format(styled, lit, burn and "added" or "NOT found"))
 -- No leaderstats yet? Add a Script in ServerScriptService:
 --   game.Players.PlayerAdded:Connect(function(p) local ls = Instance.new("Folder"); ls.Name = "leaderstats"; ls.Parent = p

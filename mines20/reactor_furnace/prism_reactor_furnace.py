@@ -24,18 +24,34 @@ slab("Platform Mid", chamfer_rect(11.0, 10.0, 1.0), 0.6, chamfer_rect(10.6, 9.6,
 for k, x in enumerate((-6.5, 6.5)):
     abox(f"Platform Glow {k}", x - 0.05, x + 0.05, -4.0, 4.0, 0.25, 0.4, TEAL, C_BASE)
 abox("Front Glow", -5.5, 5.5, -6.32, -6.25, 0.25, 0.4, TEAL, C_BASE)
-# entry lip: a black ramp from the ground up to the pool rim at the front
-hexa("Entry Ramp", [V(-2.6, -6.6, 0), V(2.6, -6.6, 0), V(2.6, -3.0, 0), V(-2.6, -3.0, 0),
-                    V(-2.6, -6.6, 0.15), V(2.6, -6.6, 0.15), V(2.6, -3.0, 1.15), V(-2.6, -3.0, 1.15)], BLACK, C_BASE)
+# conveyor ramp: from the ground up to the pool lip, then flat straight into the pool (no steps)
+CONV = M("Conveyor", (30, 32, 38), rough=0.6, rbx="DiamondPlate", plate=12.0)
+RZ = 1.3
+hexa("Conveyor Slope", [V(-2.5, -8.8, 0), V(2.5, -8.8, 0), V(2.5, -5.0, 0), V(-2.5, -5.0, 0),
+                        V(-2.5, -8.8, 0.02), V(2.5, -8.8, 0.02), V(2.5, -5.0, RZ), V(-2.5, -5.0, RZ)], CONV, C_BASE)
+abox("Conveyor Flat", -2.5, 2.5, -5.0, -2.95, 0.0, RZ, CONV, C_BASE)
+slope = math.atan2(RZ, 3.8)
+up = V(0, -math.sin(slope), math.cos(slope));fw = V(0, math.cos(slope), math.sin(slope))
+for k in range(4):                                          # glowing chevrons pointing into the furnace
+    y = -8.2 + k * 1.3
+    z = (y + 8.8) / 3.8 * RZ if y < -5.0 else RZ
+    c = V(0, y, z) + (up if y < -5.0 else Z_AX) * 0.02
+    f = fw if y < -5.0 else Y_AX
+    for sgn in (1, -1):
+        obox(f"Chevron {k}{sgn}", c + V(sgn * 0.45, 0, 0) - f * 0.0, (1.1, 0.16, 0.03), (V(sgn * 1, 0, 0) * 0.7 - f * 0.7).normalized(), (V(-sgn * 0.7, 0, 0) + f * 0.7).normalized().cross(up if y < -5.0 else Z_AX).cross(up if y < -5.0 else Z_AX) * -1 if False else (f.cross(up if y < -5.0 else Z_AX)).normalized() * 0 + (up if y < -5.0 else Z_AX).cross((V(sgn, 0, 0) * 0.7 - f * 0.7).normalized()).normalized(), up if y < -5.0 else Z_AX, TEAL, C_BASE)
+for sgn in (1, -1):                                         # side rails keep ore on the ramp
+    hexa(f"Ramp Rail {sgn}", [V(sgn * 2.5, -8.8, 0), V(sgn * 2.8, -8.8, 0), V(sgn * 2.8, -5.0, RZ), V(sgn * 2.5, -5.0, RZ),
+                               V(sgn * 2.5, -8.8, 0.45), V(sgn * 2.8, -8.8, 0.45), V(sgn * 2.8, -5.0, RZ + 0.45), V(sgn * 2.5, -5.0, RZ + 0.45)], PLATE2, C_BASE)
+    abox(f"Flat Rail {sgn}", min(sgn * 2.5, sgn * 2.8), max(sgn * 2.5, sgn * 2.8), -5.0, -3.0, 0.0, RZ + 0.45, PLATE2, C_BASE)
+    abox(f"Rail Glow {sgn}", min(sgn * 2.62, sgn * 2.68), max(sgn * 2.62, sgn * 2.68), -5.0, -3.0, RZ + 0.45, RZ + 0.5, AMBER, C_BASE)
 
 # ---- sunken glowing intake pool (where ore is sold)
 PZ = 1.1
 for s in (-1, 1):
     abox(f"Pool Wall X{s}", s * 3.0 - 0.4, s * 3.0 + 0.4, -3.0, 2.6, PZ, PZ + 0.9, PLATE, C_POOL)
 abox("Pool Wall Back", -3.4, 3.4, 2.2, 2.9, PZ, PZ + 1.3, PLATE, C_POOL)
-abox("Pool Liquid", -2.6, 2.6, -3.0, 2.2, PZ - 0.2, PZ + 0.15, POOL, C_POOL)
-hexa("Pool Glass Box", [V(-2.55, -2.9, PZ + 0.15), V(2.55, -2.9, PZ + 0.15), V(2.55, 2.15, PZ + 0.15), V(-2.55, 2.15, PZ + 0.15),
-                        V(-2.4, -2.75, PZ + 0.85), V(2.4, -2.75, PZ + 0.85), V(2.4, 2.0, PZ + 0.85), V(-2.4, 2.0, PZ + 0.85)], GLASS, C_POOL)
+abox("Pool Liquid", -2.6, 2.6, -2.95, 2.2, PZ - 0.2, PZ + 0.05, POOL, C_POOL)
+abox("Pool Back Glass", -2.6, 2.6, 2.05, 2.2, PZ + 0.1, PZ + 1.2, GLASS, C_POOL)
 for s in (-1, 1):
     abox(f"Pool Rim Glow {s}", s * 2.62 - 0.04, s * 2.62 + 0.04, -3.0, 2.2, PZ + 0.85, PZ + 0.95, TEAL, C_POOL)
 bz = abox("Burn Zone", -2.5, 2.5, -2.9, 2.1, PZ + 0.15, PZ + 1.0, BURN, C_POOL)
@@ -98,5 +114,19 @@ head, rest = src.split("local LOOK = {", 1)
 rest = rest.split("local model = ", 1)[1]
 lua = head.replace("NightmareLamentFurnace", "PrismReactorFurnace").replace("vortex mouth", "intake pool") + \
       "local LOOK = {\n" + look + "\n}\nlocal LIGHTS = {\n" + lights + "\n}\nlocal model = " + rest.replace("NightmareLamentFurnace", "PrismReactorFurnace")
+lua = lua.replace("print((\"[PrismReactorFurnace]", '''-- conveyor ramp: push ore up the ramp and into the pool
+local speed = model:GetAttribute("ConveyorSpeed") or 8
+model:SetAttribute("ConveyorSpeed", speed)
+local nConv = 0
+for _, p in ipairs(model:GetDescendants()) do
+	if p:IsA("BasePart") and p.Name:gsub("%.%d+$", "") == "Conveyor" and burn then
+		local dir = burn.Position - p.Position
+		p.AssemblyLinearVelocity = dir.Unit * speed
+		p.Anchored = true
+		nConv += 1
+	end
+end
+print(("[PrismReactorFurnace] conveyor ramp parts: %d (speed attribute ConveyorSpeed)"):format(nConv))
+print(("[PrismReactorFurnace]''', 1)
 open(os.path.join(OUT, "PrismReactorFurnace_RobloxSetup.lua"), "w").write(lua)
 print("[mine] wrote furnace setup lua")
