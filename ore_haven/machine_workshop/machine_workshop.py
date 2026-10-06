@@ -8,7 +8,8 @@ Writes:
   MachineWorkshop_Building_Roblox.fbx    building + all interior props (place on top of the foundation)
   MachineWorkshop_Foundation_Roblox.fbx  stone foundation + entrance landing, steps and ramp (place on the hill)
   MachineWorkshop_RobloxSetup.lua         optional: colours/materials/transparency/lights for every part
-Units: 1 Blender unit = 1 stud. Front faces -Y (down the hill). Floor level is Z = 2 (top of the foundation).
+Units: 1 Blender unit = 1 stud. Built at 50% of the 72 x 56 brief (36 x 28 studs, ~11 studs inside height; --scale 1 for full size).
+Front faces -Y (down the hill). Floor level is Z = 1 (top of the foundation).
 Key gameplay parts are exported as separate, named MeshParts (see SEPARATE below); everything else is merged
 per material to keep the part count low.
 """
@@ -394,6 +395,11 @@ for k, (dx, dy, sz) in enumerate(((-4.6, 1.8, 2.2), (-2.4, 2.0, 1.8), (-4.0, 1.9
     z0 = FZ if k < 2 else FZ + 2.2
     bevbox(f"Crate {k}", TC.x + dx - sz / 2, TC.x + dx + sz / 2, TC.y + dy - sz / 2, TC.y + dy + sz / 2, z0, z0 + sz, WOOD, C_PROPS, b=0.12)
 
+# ------------------------------------------------------------------ SCALE (50% of the original 72 x 56 brief)
+SCALE = float(arg("--scale", 0.5))
+for ob in MINE_OBJECTS:
+    ob.data.transform(Matrix.Scale(SCALE, 4))
+
 # ------------------------------------------------------------------ EXPORT
 name = "MachineWorkshop"
 OUT_DIR = OUT
@@ -495,7 +501,7 @@ if RENDER:
     world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.6
     stage = STATE["stage"]
     gme = bpy.data.meshes.new("Hill"); bm = bmesh.new(); bmesh.ops.create_grid(bm, x_segments=1, y_segments=1, size=160); bm.to_mesh(gme); bm.free()
-    g = bpy.data.objects.new("Hill", gme); g.location.z = -1.9; stage.objects.link(g); gme.materials.append(new_mat("Grass", lin((96, 150, 80)), rough=0.95))
+    g = bpy.data.objects.new("Hill", gme); g.location.z = -1.9 * SCALE; stage.objects.link(g); gme.materials.append(new_mat("Grass", lin((96, 150, 80)), rough=0.95))
     def light(n, kind, loc, energy, col=(1, 1, 1), rot=None, size=1.0):
         ld = bpy.data.lights.new(n, kind); ld.energy = energy; ld.color = col
         if kind == 'SUN': ld.angle = math.radians(8)
@@ -505,7 +511,7 @@ if RENDER:
         stage.objects.link(ob)
     light("Sun", 'SUN', V(0, 0, 80), 3.5, (1.0, 0.96, 0.9), rot=Euler((math.radians(50), 0, math.radians(-35))))
     for (x, y) in ((-20, -12), (20, -12), (-20, 10), (20, 10), (0, 0)):
-        light(f"Room Fill {x}{y}", 'POINT', V(x, y, CEIL - 5), 4500, (1.0, 0.95, 0.88), size=4)
+        light(f"Room Fill {x}{y}", 'POINT', V(x, y, CEIL - 5) * SCALE, 4500 * SCALE * SCALE, (1.0, 0.95, 0.88), size=4 * SCALE)
     cams = {
         "exterior_hero": (V(62, -96, 44), V(0, -6, 10), 32, (1600, 1100)),
         "exterior_front": (V(0, -112, 18), V(0, 0, 12), 32, (1600, 1100)),
@@ -520,6 +526,7 @@ if RENDER:
     roof = [o for o in MINE_OBJECTS if o.users_collection[0] == C_ROOF]
     ceiling = [o for o in MINE_OBJECTS if o.name.startswith(("Ceiling Beam", "Lamp ", "Ring Beam"))]
     rdir = os.path.join(OUT_DIR, "renders"); os.makedirs(rdir, exist_ok=True)
+    cams = {k: (l * SCALE, t * SCALE, ln, r) for k, (l, t, ln, r) in cams.items()}
     for n, (loc, tgt, lens, res) in cams.items():
         if VIEWS != "hero,front,left,back" and n not in VIEWS.split(","):
             continue
