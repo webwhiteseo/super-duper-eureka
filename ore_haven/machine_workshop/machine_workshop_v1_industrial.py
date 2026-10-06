@@ -22,20 +22,12 @@ C_FOUND, C_SHELL, C_ROOF, C_SHOW, C_ARCH, C_FUSE, C_EVO, C_REAR, C_PROPS = begin
 Z_AX, Y_AX, X_AX = V(0, 0, 1), V(0, 1, 0), V(1, 0, 0)
 
 # ------------------------------------------------------------------ palette
-CONC = M("Castle Base Stone", (64, 70, 68), rough=0.85, rbx="Slate", noise=((50, 56, 54), (80, 86, 84), 3.0, 0.3))
-STONE = M("Path Stone", (150, 150, 146), rough=0.9, rbx="Slate", noise=((124, 124, 120), (176, 176, 170), 2.5, 0.35))
+CONC = M("Warm Concrete", (196, 190, 180), rough=0.85, rbx="Concrete", noise=((178, 172, 162), (212, 206, 196), 3.0, 0.15))
+STONE = M("Foundation Stone", (168, 160, 148), rough=0.9, rbx="Slate", noise=((140, 132, 120), (190, 182, 170), 2.5, 0.35))
 FLOOR = M("Concrete Floor", (182, 178, 170), rough=0.8, rbx="Concrete", noise=((166, 162, 154), (196, 192, 184), 6.0, 0.1))
 STEEL = M("Charcoal Steel (Metal)", (52, 54, 60), rough=0.45, metal=0.75, rbx="Metal")
 STEEL2 = M("Light Steel (DiamondPlate)", (120, 124, 132), rough=0.4, metal=0.8, rbx="DiamondPlate", plate=8.0)
-BLUE = M("Castle Wall Stone", (84, 92, 88), rough=0.85, rbx="Slate", noise=((70, 78, 74), (100, 108, 104), 3.0, 0.25))
-BLUE_IN = M("Blue Wall Panel", (84, 112, 146), rough=0.6, rbx="SmoothPlastic")
-BAND = M("Dark Stone Band", (56, 62, 60), rough=0.85, rbx="Slate")
-RED = M("Roof Red", (178, 72, 64), rough=0.6, rbx="Slate", noise=((154, 58, 52), (196, 88, 78), 4.0, 0.2))
-BANNER = M("Banner Red (Fabric)", (190, 50, 44), rough=0.8, rbx="Fabric")
-GRASS = M("Hill Grass", (128, 178, 96), rough=0.95, rbx="Grass", noise=((108, 160, 80), (148, 196, 112), 2.0, 0.15))
-ROCK = M("Hill Rock", (196, 198, 196), rough=0.9, rbx="Slate")
-PINE = M("Pine Green", (70, 140, 80), rough=0.7)
-TRUNK = M("Trunk (Wood)", (110, 80, 54), rough=0.8, rbx="Wood")
+BLUE = M("Blue Wall Panel", (84, 112, 146), rough=0.6, rbx="SmoothPlastic")
 BLUE2 = M("Dark Blue Panel", (62, 84, 114), rough=0.6, rbx="SmoothPlastic")
 COPPER = M("Copper (Metal)", (196, 116, 62), rough=0.35, metal=0.9, rbx="Metal")
 ORANGE = M("Industrial Orange", (232, 124, 40), rough=0.5)
@@ -89,44 +81,15 @@ CEIL = FZ + 22.0                                     # 22 studs clear height
 # ------------------------------------------------------------------ FOUNDATION + LANDING (separate FBX)
 slab("Foundation Slab", chamfer_rect(78.0, 62.0, 2.0), -2.0, chamfer_rect(78.0, 62.0, 2.0), FZ - 0.5, STONE, C_FOUND)
 slab("Foundation Cap", chamfer_rect(77.0, 61.0, 1.8), FZ - 0.5, chamfer_rect(76.2, 60.2, 1.6), FZ - 0.12, CONC, C_FOUND)
-# low-poly grassy hilltop cap that blends the stone base into the existing hill (delete if your hill already fits)
-rnd_h = random.Random(5)
-rings = []
-for i, (rx, ry, z) in enumerate(((40.5, 32.5, FZ - 0.6), (46.0, 38.0, -0.8), (53.0, 45.0, -3.4), (60.0, 52.0, -6.5))):
-    ring = []
-    for k in range(28):
-        a = 2 * math.pi * k / 28
-        j = 1.0 + (rnd_h.uniform(-0.05, 0.05) if i else 0.0)
-        ring.append(V(rx * j * math.cos(a), ry * j * math.sin(a) - 2.0, z + (rnd_h.uniform(-0.4, 0.4) if i else 0.0)))
-    rings.append(ring)
-hb = loft(rings[::-1], cap0=False, cap1=True, smooth_sides=False)
-finish("Hilltop Blend", hb, GRASS, C_FOUND, merge=0)
-for k in range(16):
-    a = 2 * math.pi * k / 16 + 0.2
-    if -2.0 < math.cos(a) * 48 < 2.0 and math.sin(a) < 0:
-        continue
-    if abs(math.degrees(a) % 360 - 270) < 22:
-        continue
-    r = rnd_h.uniform(44, 52)
-    rock_f(f"Hill Rock {k}", V(r * math.cos(a), r * 0.82 * math.sin(a) - 2.0, -1.8), (rnd_h.uniform(1.2, 2.2), rnd_h.uniform(1.0, 1.8), rnd_h.uniform(0.8, 1.4)), ROCK, C_FOUND, rough=0.3)
-for k, (x, y) in enumerate(((-46, -14), (-48, 6), (-42, 22), (46, -10), (47, 12), (40, 26), (-30, 36), (24, 38))):
-    z = -2.6
-    cyl(f"Pine Trunk {k}", V(x, y, z), V(x, y, z + 2.4), 0.5, 0.4, TRUNK, C_FOUND, n=6)
-    for j, (r, h0, h1) in enumerate(((3.2, 2.0, 6.0), (2.5, 4.5, 8.0), (1.7, 7.0, 10.0))):
-        cone(f"Pine {k}{j}", V(x, y, z + h0), V(x, y, z + h1), r, PINE, C_FOUND, n=7)
+for k in range(10):                                   # stone course lines
+    x = -36 + k * 8.0
+    abox(f"Foundation Block Line {k}", x - 0.15, x + 0.15, -31.05, -30.9, -1.5, FZ - 0.6, STEEL, C_FOUND)
 LAND_Y0, LAND_Y1 = -40.0, -31.0                       # landing in front of the entrance
 bevbox("Entrance Landing", -14.0, 14.0, LAND_Y0, LAND_Y1 + 0.5, -2.0, FZ, STONE, C_FOUND, b=0.4)
 abox("Landing Top", -13.6, 13.6, LAND_Y0 + 0.4, LAND_Y1, FZ - 0.05, FZ + 0.02, CONC, C_FOUND)
-for k in range(9):                                    # stone path steps down the hill (matches the map's summit path)
-    z = FZ - 0.95 * (k + 1)
-    y1 = LAND_Y0 - 2.0 * k
-    bevbox(f"Path Step {k}", -6.0 + 0.3 * math.sin(k), 6.0 + 0.3 * math.sin(k), y1 - 2.0, y1, z - 1.2, z, STONE, C_FOUND, b=0.2)
-    if k % 3 == 1:
-        for s_ in (-1, 1):
-            P_ = V(s_ * 7.6, y1 - 1.0, z)
-            cyl(f"Path Lantern Post {k}{s_}", P_, P_ + V(0, 0, 3.0), 0.18, 0.16, STEEL, C_FOUND, n=6)
-            abox(f"Path Lantern {k}{s_}", P_.x - 0.5, P_.x + 0.5, P_.y - 0.5, P_.y + 0.5, z + 3.0, z + 4.0, LAMP, C_FOUND)
-            cone(f"Path Lantern Cap {k}{s_}", P_ + V(0, 0, 4.0), P_ + V(0, 0, 4.7), 0.75, STEEL, C_FOUND, n=4)
+for k in range(4):                                    # short steps down the hill from the landing
+    z = FZ - 0.5 * (k + 1)
+    bevbox(f"Front Step {k}", -9.0, 9.0, LAND_Y0 - 1.4 * (k + 1), LAND_Y0 - 1.4 * k, -2.0, z, STONE, C_FOUND, b=0.15)
 # practical ramp route along the left side of the landing
 hexa("Access Ramp", [V(-24.0, LAND_Y0 - 5.6, -2.0), V(-14.0, LAND_Y0 - 5.6, -2.0), V(-14.0, LAND_Y0 + 3.0, -2.0), V(-24.0, LAND_Y0 + 3.0, -2.0),
                      V(-24.0, LAND_Y0 - 5.6, -0.0), V(-14.0, LAND_Y0 - 5.6, -0.0), V(-14.0, LAND_Y0 + 3.0, FZ), V(-24.0, LAND_Y0 + 3.0, FZ)], STONE, C_FOUND)
@@ -177,24 +140,6 @@ sep(abox("Sign Surface", -11.2, 11.2, fy0 - 1.5, fy0 - 1.38, EH + 2.9, EH + 6.1,
 for s in (-1, 1):
     dot(f"Sign Bolt {s}a", V(s * 11.6, fy0 - 1.45, EH + 3.0), 0.18, COPPER, C_SHELL)
     dot(f"Sign Bolt {s}b", V(s * 11.6, fy0 - 1.45, EH + 6.0), 0.18, COPPER, C_SHELL)
-# castle-style dark stone bands on the outside faces (like the old hilltop tower)
-for z in (FZ + 6.0, FZ + 12.5, FZ + 19.0):
-    abox(f"Front Band {z:.0f} L", -W, -EW - 2.2, -D - 0.15, -D, z, z + 1.0, BAND, C_SHELL)
-    abox(f"Front Band {z:.0f} R", EW + 2.2, W, -D - 0.15, -D, z, z + 1.0, BAND, C_SHELL)
-    abox(f"Rear Band {z:.0f}", -W, W, D, D + 0.15, z, z + 1.0, BAND, C_SHELL)
-    for s_ in (-1, 1):
-        abox(f"Side Band {z:.0f}{s_}", min(s_ * W, s_ * (W + 0.15)), max(s_ * W, s_ * (W + 0.15)), -D, D, z, z + 1.0, BAND, C_SHELL)
-for s_ in (-1, 1):                                    # red banners with gold stripe beside the entrance
-    bx = s_ * 10.4
-    abox(f"Banner {s_}", bx - 1.0, bx + 1.0, -D - 0.6, -D - 0.45, FZ + 6.5, FZ + 14.5, BANNER, C_SHELL)
-    abox(f"Banner Stripe {s_}", bx - 0.2, bx + 0.2, -D - 0.66, -D - 0.6, FZ + 7.5, FZ + 13.5, GOLD, C_SHELL)
-    abox(f"Banner Rod {s_}", bx - 1.3, bx + 1.3, -D - 0.8, -D - 0.4, FZ + 14.5, FZ + 14.8, GOLD, C_SHELL)
-# interior blue wall panels (inside stays a bright workshop)
-for s_ in (-1, 1):
-    abox(f"Interior Panel Side {s_}", min(s_ * (W - T), s_ * (W - T - 0.1)), max(s_ * (W - T), s_ * (W - T - 0.1)), -D + T, D - T, FZ + 6.0, CEIL - 1.5, BLUE_IN, C_SHELL)
-    abox(f"Interior Panel Front {s_}", min(s_ * W - s_ * T, s_ * WX1), max(s_ * W - s_ * T, s_ * WX1), -D + T, -D + T + 0.1, FZ + 6.0, CEIL - 1.5, BLUE_IN, C_SHELL)
-for k in range(0, 8, 2):
-    pass
 # side walls (concrete base band, blue panels, charcoal pilasters)
 for s in (-1, 1):
     x0, x1 = sorted((s * W, s * (W - T)))
@@ -215,39 +160,15 @@ for k in range(0, len(xs), 2):
 for x in AL:
     abox(f"Rear Wall Over Alcove {x:.0f}", x - AW, x + AW, ry0, ry1, AH, CEIL, BLUE, C_SHELL)
 for k in range(0, len(xs), 2):
-    abox(f"Interior Panel Rear {k}", xs[k] + (T if k == 0 else 0), xs[k + 1] - (T if k == len(xs) - 2 else 0), ry0 - 0.1, ry0, FZ + 6.0, CEIL - 1.5, BLUE_IN, C_SHELL)
-for x in AL:
-    abox(f"Interior Panel Rear Over {x:.0f}", x - AW, x + AW, ry0 - 0.1, ry0, AH, CEIL - 1.5, BLUE_IN, C_SHELL)
-for k in range(0, len(xs), 2):
     abox(f"Rear Wall Base Band {k}", xs[k], xs[k + 1], ry1 - 0.1, ry1 + 0.05, FZ, FZ + 6.0, CONC, C_SHELL)
 # heavy corner supports + top beam ring
 for sx in (-1, 1):
     for sy in (-1, 1):
         x, y = sx * W, sy * D
-        if sy < 0:
-            lathe(f"Corner Turret {sx}", V(x, y, -0.5), [(3.4, 0), (3.4, FZ + 1.7), (3.0, FZ + 2.5), (3.0, CEIL + 4.0), (3.5, CEIL + 4.6), (3.5, CEIL + 5.4)], BLUE, C_SHELL, n=10, smooth=False)
-            for zb in (FZ + 6.0, FZ + 12.5, FZ + 19.0):
-                lathe(f"Turret Band {sx}{zb:.0f}", V(x, y, zb), [(3.08, 0), (3.08, 1.0)], BAND, C_SHELL, n=10, smooth=False)
-            for m in range(10):
-                a_ = 2 * math.pi * m / 10
-                abox(f"Turret Merlon {sx}{m}", x + 3.2 * math.cos(a_) - 0.45, x + 3.2 * math.cos(a_) + 0.45, y + 3.2 * math.sin(a_) - 0.45, y + 3.2 * math.sin(a_) + 0.45, CEIL + 5.4, CEIL + 6.4, BLUE, C_SHELL) if m % 2 == 0 else None
-            lathe(f"Turret Roof {sx}", V(x, y, CEIL + 5.6), [(3.9, 0), (2.4, 2.8), (0.01, 6.6)], RED, C_ROOF, n=10, smooth=False)
-            torus(f"Turret Trim {sx}", V(x, y, CEIL + 5.6), Z_AX, Y_AX, 3.85, 0.14, GOLD, C_ROOF, n_major=10, n_minor=4)
-            cyl(f"Flag Pole {sx}", V(x, y, CEIL + 12.0), V(x, y, CEIL + 15.0), 0.08, 0.08, STEEL, C_ROOF, n=4)
-            blade(f"Flag {sx}", [V(x, y, CEIL + 14.9), V(x + 1.8 * sx, y, CEIL + 14.4), V(x, y, CEIL + 13.8)], 0.05, BANNER, C_ROOF)
-            for zw in (FZ + 9.0, FZ + 15.5):
-                abox(f"Turret Window {sx}{zw:.0f}", x - 0.3, x + 0.3, y - 3.1, y - 2.9, zw, zw + 1.8, LAMP, C_SHELL)
-        else:
-            bevbox(f"Corner Support {sx}{sy}", x - 2.2, x + 2.2, y - 2.2, y + 2.2, -0.5, CEIL + 2.0, BAND, C_SHELL, b=0.5)
-        if sy > 0:
-            bevbox(f"Corner Footing {sx}{sy}", x - 2.8, x + 2.8, y - 2.8, y + 2.8, -0.5, FZ + 1.2, CONC, C_SHELL, b=0.4)
+        bevbox(f"Corner Support {sx}{sy}", x - 2.2, x + 2.2, y - 2.2, y + 2.2, -0.5, CEIL + 2.0, STEEL, C_SHELL, b=0.5)
+        bevbox(f"Corner Footing {sx}{sy}", x - 2.8, x + 2.8, y - 2.8, y + 2.8, -0.5, FZ + 1.2, STONE, C_SHELL, b=0.4)
 bevbox("Ring Beam Front", -W, W, -D - 0.6, -D + T, CEIL, CEIL + 1.6, STEEL, C_SHELL, b=0.3)
 bevbox("Ring Beam Rear", -W, W, D - T, D + 0.6, CEIL, CEIL + 1.6, STEEL, C_SHELL, b=0.3)
-for k in range(17):
-    x = -W + 4.0 + k * 4.0
-    if abs(x) < 12.6:
-        continue
-    abox(f"Front Merlon {k}", x - 0.9, x + 0.9, -D - 0.6, -D + 0.8, CEIL + 1.6, CEIL + 3.0, BLUE, C_SHELL)
 for s in (-1, 1):
     bevbox(f"Ring Beam Side {s}", min(s * (W + 0.6), s * (W - T)), max(s * (W + 0.6), s * (W - T)), -D, D, CEIL, CEIL + 1.6, STEEL, C_SHELL, b=0.3)
 
@@ -256,39 +177,27 @@ RZ = CEIL + 1.6
 CX0, CX1, CY0, CY1 = -14.0, 14.0, -22.0, 22.0       # raised central section
 TOPZ = FZ + 30.0                                     # highest roof ~30 above floor
 abox("Roof Left", -W, CX0, -D, D, RZ - 1.6, RZ, CONC, C_ROOF)
-hexa("Red Roof Left", [V(-W - 1.4, -D - 1.0, RZ - 0.6), V(CX0, -D - 1.0, RZ + 3.6), V(CX0, D + 1.0, RZ + 3.6), V(-W - 1.4, D + 1.0, RZ - 0.6),
-                       V(-W - 1.4, -D - 1.0, RZ + 0.2), V(CX0, -D - 1.0, RZ + 4.4), V(CX0, D + 1.0, RZ + 4.4), V(-W - 1.4, D + 1.0, RZ + 0.2)], RED, C_ROOF)
-for y_ in (-D - 1.0, D + 1.0):
-    hexa(f"Roof Left Gable {y_:.0f}", [V(-W, y_ * 0.97, RZ - 0.6), V(CX0, y_ * 0.97, RZ - 0.6), V(CX0, y_ * 0.97, RZ - 0.6), V(-W, y_ * 0.97, RZ - 0.6),
-                                        V(-W, y_ * 0.97, RZ - 0.4), V(CX0, y_ * 0.97, RZ + 3.6), V(CX0, y_ * 0.97 + 0.01, RZ + 3.6), V(-W, y_ * 0.97 + 0.01, RZ - 0.4)], CONC, C_ROOF) if False else None
+bevbox("Roof Left Parapet", -W - 0.4, CX0, -D - 0.4, -D + 0.8, RZ, RZ + 1.4, STEEL, C_ROOF, b=0.2)
 # lower right roof section (slopes down to the side - asymmetric silhouette)
-abox("Roof Right", CX1, W, -D, D, RZ - 1.6, RZ, CONC, C_ROOF)
-hexa("Red Roof Right", [V(CX1, -D - 1.0, RZ + 2.0), V(W + 1.4, -D - 1.0, RZ - 1.2), V(W + 1.4, D + 1.0, RZ - 1.2), V(CX1, D + 1.0, RZ + 2.0),
-                        V(CX1, -D - 1.0, RZ + 2.8), V(W + 1.4, -D - 1.0, RZ - 0.4), V(W + 1.4, D + 1.0, RZ - 0.4), V(CX1, D + 1.0, RZ + 2.8)], RED, C_ROOF)
+hexa("Roof Right", [V(CX1, -D, RZ - 1.6), V(W, -D, RZ - 1.6), V(W, D, RZ - 1.6), V(CX1, D, RZ - 1.6),
+                    V(CX1, -D, RZ), V(W + 0.6, -D, RZ - 1.6), V(W + 0.6, D, RZ - 1.6), V(CX1, D, RZ)], STEEL2, C_ROOF)
 abox("Roof Centre Low Front", CX0, CX1, -D, CY0, RZ - 1.6, RZ, CONC, C_ROOF)
 abox("Roof Centre Low Rear", CX0, CX1, CY1, D, RZ - 1.6, RZ, CONC, C_ROOF)
 for s in (-1, 1):                                    # clerestory walls of the raised section
-    abox(f"Clerestory Side {s}", min(s * CX1, s * (CX1 - 1.2)), max(s * CX1, s * (CX1 - 1.2)), CY0, CY1, RZ - 1.6, TOPZ - 1.2, BLUE, C_ROOF)
-abox("Clerestory Front", CX0, CX1, CY0, CY0 + 1.2, RZ - 1.6, TOPZ - 1.2, BLUE, C_ROOF)
-abox("Clerestory Rear", CX0, CX1, CY1 - 1.2, CY1, RZ - 1.6, TOPZ - 1.2, BLUE, C_ROOF)
+    abox(f"Clerestory Side {s}", min(s * CX1, s * (CX1 - 1.2)), max(s * CX1, s * (CX1 - 1.2)), CY0, CY1, RZ - 1.6, TOPZ - 1.2, BLUE2, C_ROOF)
+abox("Clerestory Front", CX0, CX1, CY0, CY0 + 1.2, RZ - 1.6, TOPZ - 1.2, BLUE2, C_ROOF)
+abox("Clerestory Rear", CX0, CX1, CY1 - 1.2, CY1, RZ - 1.6, TOPZ - 1.2, BLUE2, C_ROOF)
 for k in range(4):                                   # clerestory windows on the front face
     x = -10.5 + k * 7.0
     abox(f"Clerestory Window {k}", x - 2.6, x + 2.6, CY0 - 0.05, CY0 + 0.1, RZ + 0.5, TOPZ - 2.0, GLASS, C_ROOF)
-GZ0 = TOPZ - 1.2                                     # eaves of the central gable
-for s_ in (-1, 1):
-    hexa(f"Red Roof Centre {s_}", [V(s_ * (CX1 + 1.4), CY0 - 1.4, GZ0 - 0.4), V(s_ * 2.6, CY0 - 1.4, GZ0 + 4.4), V(s_ * 2.6, CY1 + 1.4, GZ0 + 4.4), V(s_ * (CX1 + 1.4), CY1 + 1.4, GZ0 - 0.4),
-                                   V(s_ * (CX1 + 1.4), CY0 - 1.4, GZ0 + 0.4), V(s_ * 2.6, CY0 - 1.4, GZ0 + 5.2), V(s_ * 2.6, CY1 + 1.4, GZ0 + 5.2), V(s_ * (CX1 + 1.4), CY1 + 1.4, GZ0 + 0.4)], RED, C_ROOF)
-    abox(f"Roof Gold Trim {s_}", min(s_ * (CX1 + 1.5), s_ * (CX1 + 1.1)), max(s_ * (CX1 + 1.5), s_ * (CX1 + 1.1)), CY0 - 1.5, CY1 + 1.5, GZ0 - 0.6, GZ0 - 0.2, GOLD, C_ROOF)
-for y_ in (CY0, CY1 - 1.2):
-    bm_g = loft([[V(-CX1, y_, GZ0), V(CX1, y_, GZ0), V(2.6, y_, GZ0 + 4.4), V(-2.6, y_, GZ0 + 4.4)],
-                 [V(-CX1, y_ + 1.2, GZ0), V(CX1, y_ + 1.2, GZ0), V(2.6, y_ + 1.2, GZ0 + 4.4), V(-2.6, y_ + 1.2, GZ0 + 4.4)]], smooth_sides=False)
-    finish(f"Gable End {y_:.0f}", bm_g, BLUE, C_ROOF, merge=0)
-abox("Ridge Lantern Glass", -2.6, 2.6, CY0 - 1.0, CY1 + 1.0, GZ0 + 4.4, GZ0 + 5.8, GLASS, C_ROOF)
-for k in range(9):
-    y_ = CY0 - 1.0 + k * (CY1 - CY0 + 2.0) / 8
-    bevbox(f"Lantern Rib {k}", -2.7, 2.7, y_ - 0.2, y_ + 0.2, GZ0 + 4.4, GZ0 + 5.9, STEEL, C_ROOF, b=0.06)
-hexa("Ridge Cap", [V(-2.9, CY0 - 1.2, GZ0 + 5.8), V(2.9, CY0 - 1.2, GZ0 + 5.8), V(2.9, CY1 + 1.2, GZ0 + 5.8), V(-2.9, CY1 + 1.2, GZ0 + 5.8),
-                   V(-0.3, CY0 - 1.2, GZ0 + 6.8), V(0.3, CY0 - 1.2, GZ0 + 6.8), V(0.3, CY1 + 1.2, GZ0 + 6.8), V(-0.3, CY1 + 1.2, GZ0 + 6.8)], RED, C_ROOF)
+bevbox("Raised Roof Slab Front", CX0 - 1.0, CX1 + 1.0, CY0 - 1.0, -10.0, TOPZ - 1.2, TOPZ, STEEL, C_ROOF, b=0.3)
+bevbox("Raised Roof Slab Rear", CX0 - 1.0, CX1 + 1.0, 10.0, CY1 + 1.0, TOPZ - 1.2, TOPZ, STEEL, C_ROOF, b=0.3)
+for s in (-1, 1):
+    bevbox(f"Raised Roof Slab Side {s}", min(s * (CX1 + 1.0), s * 7.0), max(s * (CX1 + 1.0), s * 7.0), -10.0, 10.0, TOPZ - 1.2, TOPZ, STEEL, C_ROOF, b=0.3)
+abox("Skylight Glass", -7.0, 7.0, -10.0, 10.0, TOPZ - 0.9, TOPZ - 0.6, GLASS, C_ROOF)
+for k in range(1, 4):
+    y = -10 + k * 5.0
+    bevbox(f"Skylight Rib {k}", -7.0, 7.0, y - 0.25, y + 0.25, TOPZ - 1.0, TOPZ - 0.3, STEEL, C_ROOF, b=0.08)
 # roof vent + exterior pipes
 bevbox("Roof Vent Box", -30.0, -24.0, 6.0, 12.0, RZ, RZ + 2.6, STEEL2, C_ROOF, b=0.3)
 for k in range(5):
@@ -592,7 +501,7 @@ if RENDER:
     world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.6
     stage = STATE["stage"]
     gme = bpy.data.meshes.new("Hill"); bm = bmesh.new(); bmesh.ops.create_grid(bm, x_segments=1, y_segments=1, size=160); bm.to_mesh(gme); bm.free()
-    g = bpy.data.objects.new("Hill", gme); g.location.z = -6.0 * SCALE; stage.objects.link(g); gme.materials.append(new_mat("Grass", lin((120, 170, 90)), rough=0.95))
+    g = bpy.data.objects.new("Hill", gme); g.location.z = -1.9 * SCALE; stage.objects.link(g); gme.materials.append(new_mat("Grass", lin((96, 150, 80)), rough=0.95))
     def light(n, kind, loc, energy, col=(1, 1, 1), rot=None, size=1.0):
         ld = bpy.data.lights.new(n, kind); ld.energy = energy; ld.color = col
         if kind == 'SUN': ld.angle = math.radians(8)
