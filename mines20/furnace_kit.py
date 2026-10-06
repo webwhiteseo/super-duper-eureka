@@ -120,3 +120,50 @@ print(("[{name}] %d parts coloured, %d lights, %d conveyor parts, sell script %s
 '''
     open(os.path.join(OUT, f"{name}_RobloxSetup.lua"), "w").write(lua)
     print("[mine] wrote furnace setup lua")
+
+
+def write_look_lua(name, note=""):
+    """Colours/materials/lights only (no gameplay script) - for decorative pieces like boost pads."""
+    used = {export_name(ob.data.materials[0].name) for ob in MINE_OBJECTS}
+    items = sorted((k, v) for k, v in RBX.items() if k in used)
+    look = ",\n".join('\t%s = {"%s", %d, %d, %d, %g}' % (k, v[0], *v[1], v[2]) for k, v in items)
+    lights = ",\n".join('\t%s = {%d, %d, %d, %g, %g}' % (k, *v[3]) for k, v in items if v[3])
+    lua = f'''-- {name}: colours, Roblox materials and glow lights. {note}
+-- 1. Import {name}_Roblox.fbx (Import 3D, Scale Unit = Stud, untick "Import as single mesh", tick Anchored).
+-- 2. Select the imported model.  3. View > Command Bar: paste this file, press Enter.
+local LOOK = {{
+{look}
+}}
+local LIGHTS = {{
+{lights}
+}}
+local model = game:GetService("Selection"):Get()[1]
+if not (model and model:IsA("Model")) then model = workspace:FindFirstChild("{name}_Roblox", true) or workspace:FindFirstChild("{name}", true) end
+assert(model, "Select the imported {name} model first.")
+local styled, lit = 0, 0
+for _, p in ipairs(model:GetDescendants()) do
+	if p:IsA("BasePart") then
+		local key = p.Name:gsub("%.%d+$", "")
+		local l = LOOK[key]
+		pcall(function()
+			p.Anchored = true
+			for _, sa in ipairs(p:GetChildren()) do if sa:IsA("SurfaceAppearance") then sa:Destroy() end end
+			if l then
+				p.Material = Enum.Material[l[1]]; p.Color = Color3.fromRGB(l[2], l[3], l[4]); p.Transparency = l[5]
+				if p:IsA("MeshPart") then p.TextureID = "" end
+				styled += 1
+			end
+			local L = LIGHTS[key]
+			if L then
+				local light = p:FindFirstChild("MineLight") or Instance.new("PointLight")
+				light.Name = "MineLight"; light.Color = Color3.fromRGB(L[1], L[2], L[3]); light.Range = L[4]; light.Brightness = L[5]
+				light.Parent = p
+				lit += 1
+			end
+		end)
+	end
+end
+print(("[{name}] %d parts coloured, %d lights"):format(styled, lit))
+'''
+    open(os.path.join(OUT, f"{name}_RobloxSetup.lua"), "w").write(lua)
+    print("[mine] wrote look lua")

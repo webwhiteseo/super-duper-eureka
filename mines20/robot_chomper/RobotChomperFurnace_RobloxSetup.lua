@@ -1,9 +1,7 @@
--- RobotChomperFurnace: colours, Roblox materials, glow lights, a working SELL script and a conveyor ramp.
+-- RobotChomperFurnace: colours, Roblox materials, glow lights and a working ore dropper.
 -- 1. Import RobotChomperFurnace_Roblox.fbx (Import 3D, Scale Unit = Stud, untick "Import as single mesh", tick Anchored).
--- 2. Select the imported model.  3. View > Command Bar: paste this file, press Enter.
--- Ore (Parts named "Ore" with a "Value" attribute, as the mine droppers make) that touches the intake is sold:
--- Value x Multiplier goes to the owner's leaderstats Cash (OwnerUserId attribute, else the first player).
--- The ramp pushes ore into the intake (ConveyorSpeed attribute).
+-- 2. Select the imported model in the Explorer.  3. View > Command Bar: paste this file, press Enter.
+-- The dropper spawns ore at the glowing ore cube every DropInterval seconds (model attributes).
 local LOOK = {
 	AntennaLight = {"Neon", 255, 60, 60, 0},
 	BurnZone = {"ForceField", 255, 80, 60, 0.7},
@@ -22,10 +20,12 @@ local LIGHTS = {
 	GrinderGlow = {255, 50, 30, 16, 2},
 	LEDEyes = {30, 240, 255, 10, 1.4}
 }
+local ORE_PART = "Ore"
+
 local model = game:GetService("Selection"):Get()[1]
 if not (model and model:IsA("Model")) then model = workspace:FindFirstChild("RobotChomperFurnace_Roblox", true) or workspace:FindFirstChild("RobotChomperFurnace", true) end
 assert(model, "Select the imported RobotChomperFurnace model first.")
-local styled, lit, burn, conv = 0, 0, nil, {}
+local styled, lit, drop = 0, 0, nil
 for _, p in ipairs(model:GetDescendants()) do
 	if p:IsA("BasePart") then
 		local key = p.Name:gsub("%.%d+$", "")
@@ -34,7 +34,9 @@ for _, p in ipairs(model:GetDescendants()) do
 			p.Anchored = true
 			for _, sa in ipairs(p:GetChildren()) do if sa:IsA("SurfaceAppearance") then sa:Destroy() end end
 			if l then
-				p.Material = Enum.Material[l[1]]; p.Color = Color3.fromRGB(l[2], l[3], l[4]); p.Transparency = l[5]
+				p.Material = Enum.Material[l[1]]
+				p.Color = Color3.fromRGB(l[2], l[3], l[4])
+				p.Transparency = l[5]
 				if p:IsA("MeshPart") then p.TextureID = "" end
 				styled += 1
 			end
@@ -46,43 +48,40 @@ for _, p in ipairs(model:GetDescendants()) do
 				lit += 1
 			end
 		end)
-		if key == "BurnZone" then burn = p end
-		if key == "Conveyor" then table.insert(conv, p) end
+		if key == ORE_PART then drop = p end
 	end
 end
-if burn then
-	burn.Name = "Burn"; burn.CanCollide = false; burn.CanTouch = true; burn.CanQuery = false
-	model:SetAttribute("Multiplier", model:GetAttribute("Multiplier") or 2)
-	model:SetAttribute("ConveyorSpeed", model:GetAttribute("ConveyorSpeed") or 8)
-	for _, p in ipairs(conv) do
-		p.AssemblyLinearVelocity = (burn.Position - p.Position).Unit * model:GetAttribute("ConveyorSpeed")
-	end
-	local old = model:FindFirstChild("Furnace"); if old then old:Destroy() end
+if drop then
+	drop.Transparency = 1; drop.CanCollide = false; drop.CanQuery = false; drop.Name = "Drop"
+	local oreLook = LOOK[ORE_PART]
+	model:SetAttribute("OreValue", model:GetAttribute("OreValue") or 25)
+	model:SetAttribute("DropInterval", model:GetAttribute("DropInterval") or 2)
+	model:SetAttribute("OreSize", model:GetAttribute("OreSize") or 1)
+	model:SetAttribute("OreColor", Color3.fromRGB(oreLook[2], oreLook[3], oreLook[4]))
+	model:SetAttribute("OreMaterial", oreLook[1])
+	local old = model:FindFirstChild("Dropper"); if old then old:Destroy() end
 	local s = Instance.new("Script")
-	s.Name = "Furnace"
+	s.Name = "Dropper"
 	s.Source = [[
-local Players = game:GetService("Players")
-local furnace = script.Parent
-local burn = furnace:FindFirstChild("Burn", true)
-local function owner()
-	local id = furnace:GetAttribute("OwnerUserId")
-	if id then return Players:GetPlayerByUserId(id) end
-	return Players:GetPlayers()[1]
+local Debris = game:GetService("Debris")
+local mine = script.Parent
+local drop = mine:FindFirstChild("Drop", true)
+while true do
+	task.wait(mine:GetAttribute("DropInterval") or 2)
+	if drop and mine:GetAttribute("Enabled") ~= false then
+		local size = mine:GetAttribute("OreSize") or 1
+		local ore = Instance.new("Part")
+		ore.Name = "Ore"
+		ore.Size = Vector3.new(size, size, size)
+		ore.Material = Enum.Material[mine:GetAttribute("OreMaterial") or "Neon"]
+		ore.Color = mine:GetAttribute("OreColor") or Color3.new(1, 1, 1)
+		ore.CFrame = drop.CFrame * CFrame.Angles(math.random() * 6.28, math.random() * 6.28, 0)
+		ore:SetAttribute("Value", mine:GetAttribute("OreValue") or 25)
+		ore.Parent = workspace
+		Debris:AddItem(ore, 30)
+	end
 end
-burn.Touched:Connect(function(hit)
-	if hit.Name ~= "Ore" or hit:GetAttribute("Sold") then return end
-	hit:SetAttribute("Sold", true)
-	local value = (hit:GetAttribute("Value") or 0) * (furnace:GetAttribute("Multiplier") or 1)
-	local plr = owner()
-	local stats = plr and plr:FindFirstChild("leaderstats")
-	local cash = stats and stats:FindFirstChild("Cash")
-	if cash then cash.Value += value end
-	hit:Destroy()
-end)
 ]]
 	s.Parent = model
 end
-print(("[RobotChomperFurnace] %d parts coloured, %d lights, %d conveyor parts, sell script %s"):format(styled, lit, #conv, burn and "added" or "NOT found"))
--- No leaderstats yet? Script in ServerScriptService:
---   game.Players.PlayerAdded:Connect(function(p) local ls = Instance.new("Folder"); ls.Name = "leaderstats"; ls.Parent = p
---   local c = Instance.new("IntValue"); c.Name = "Cash"; c.Parent = ls end)
+print(("[RobotChomperFurnace] %d parts coloured, %d lights, dropper %s"):format(styled, lit, drop and "added" or "NOT found"))
