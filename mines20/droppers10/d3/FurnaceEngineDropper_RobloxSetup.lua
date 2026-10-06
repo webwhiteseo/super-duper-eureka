@@ -7,10 +7,10 @@ local LOOK = {
 	Copper = {"Metal", 200, 120, 70, 0},
 	CoreGlow = {"Neon", 255, 180, 50, 0},
 	Crystal = {"Glass", 255, 220, 90, 0.15},
-	DarkPlate = {"DiamondPlate", 54, 44, 36, 0},
+	DarkPlate = {"DiamondPlate", 97, 79, 64, 0},
 	Ore = {"Neon", 255, 240, 110, 0},
 	Screen = {"Neon", 255, 220, 120, 0},
-	SteelPlate = {"DiamondPlate", 96, 80, 67, 0}
+	SteelPlate = {"DiamondPlate", 165, 136, 112, 0}
 }
 local LIGHTS = {
 	AccentNeon = {255, 80, 40, 8, 1},

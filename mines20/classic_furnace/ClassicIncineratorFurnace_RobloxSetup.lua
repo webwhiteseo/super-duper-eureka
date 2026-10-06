@@ -1,26 +1,28 @@
--- BlastCraneDropper: colours, Roblox materials, glow lights and a working ore dropper.
--- 1. Import BlastCraneDropper_Roblox.fbx (Import 3D, Scale Unit = Stud, untick "Import as single mesh", tick Anchored).
+-- ClassicIncineratorFurnace: colours, Roblox materials, glow lights and a working ore dropper.
+-- 1. Import ClassicIncineratorFurnace_Roblox.fbx (Import 3D, Scale Unit = Stud, untick "Import as single mesh", tick Anchored).
 -- 2. Select the imported model in the Explorer.  3. View > Command Bar: paste this file, press Enter.
 -- The dropper spawns ore at the glowing ore cube every DropInterval seconds (model attributes).
 local LOOK = {
-	AccentNeon = {"Neon", 255, 200, 80, 0},
-	CoreGlow = {"Neon", 255, 120, 40, 0},
-	DarkPlate = {"DiamondPlate", 72, 64, 61, 0},
-	DynamiteRed = {"SmoothPlastic", 200, 30, 30, 0},
-	KegWood = {"WoodPlanks", 150, 104, 60, 0},
-	Ore = {"Neon", 255, 180, 100, 0},
-	QuarryStone = {"Slate", 110, 110, 112, 0},
-	SteelPlate = {"DiamondPlate", 125, 112, 107, 0}
+	Black = {"SmoothPlastic", 16, 16, 20, 0},
+	BurnZone = {"ForceField", 255, 130, 40, 0.7},
+	DarkPlate = {"DiamondPlate", 70, 72, 80, 0},
+	Flame = {"Neon", 255, 190, 80, 0},
+	HazardYellow = {"SmoothPlastic", 240, 196, 20, 0},
+	LavaPit = {"Neon", 255, 110, 30, 0},
+	OrangeNeon = {"Neon", 255, 150, 50, 0},
+	SteelPlate = {"DiamondPlate", 128, 132, 142, 0},
+	WarningRed = {"Neon", 255, 40, 30, 0}
 }
 local LIGHTS = {
-	AccentNeon = {255, 200, 80, 8, 1},
-	CoreGlow = {255, 120, 40, 14, 1.8}
+	LavaPit = {255, 80, 10, 18, 2.4},
+	OrangeNeon = {255, 120, 20, 8, 1},
+	WarningRed = {255, 20, 10, 6, 0.8}
 }
 local ORE_PART = "Ore"
 
 local model = game:GetService("Selection"):Get()[1]
-if not (model and model:IsA("Model")) then model = workspace:FindFirstChild("BlastCraneDropper_Roblox", true) or workspace:FindFirstChild("BlastCraneDropper", true) end
-assert(model, "Select the imported BlastCraneDropper model first.")
+if not (model and model:IsA("Model")) then model = workspace:FindFirstChild("ClassicIncineratorFurnace_Roblox", true) or workspace:FindFirstChild("ClassicIncineratorFurnace", true) end
+assert(model, "Select the imported ClassicIncineratorFurnace model first.")
 local styled, lit, drop = 0, 0, nil
 for _, p in ipairs(model:GetDescendants()) do
 	if p:IsA("BasePart") then
@@ -80,4 +82,4 @@ end
 ]]
 	s.Parent = model
 end
-print(("[BlastCraneDropper] %d parts coloured, %d lights, dropper %s"):format(styled, lit, drop and "added" or "NOT found"))
+print(("[ClassicIncineratorFurnace] %d parts coloured, %d lights, dropper %s"):format(styled, lit, drop and "added" or "NOT found"))

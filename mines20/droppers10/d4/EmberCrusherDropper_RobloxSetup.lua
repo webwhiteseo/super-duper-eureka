@@ -5,10 +5,10 @@
 local LOOK = {
 	AccentNeon = {"Neon", 255, 230, 200, 0},
 	Crystal = {"Glass", 255, 100, 90, 0.15},
-	DarkPlate = {"DiamondPlate", 40, 38, 36, 0},
+	DarkPlate = {"DiamondPlate", 72, 68, 64, 0},
 	Ore = {"Neon", 255, 120, 110, 0},
 	Rubble = {"Slate", 70, 66, 60, 0},
-	SteelPlate = {"DiamondPlate", 74, 70, 67, 0}
+	SteelPlate = {"DiamondPlate", 125, 118, 112, 0}
 }
 local LIGHTS = {
 	AccentNeon = {255, 230, 200, 8, 1},

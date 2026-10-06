@@ -5,9 +5,9 @@
 local LOOK = {
 	AccentNeon = {"Neon", 255, 140, 255, 0},
 	CoreGlow = {"Neon", 190, 90, 255, 0},
-	DarkPlate = {"DiamondPlate", 36, 30, 52, 0},
+	DarkPlate = {"DiamondPlate", 64, 54, 93, 0},
 	Ore = {"Neon", 250, 150, 255, 0},
-	SteelPlate = {"DiamondPlate", 67, 58, 93, 0}
+	SteelPlate = {"DiamondPlate", 112, 96, 158, 0}
 }
 local LIGHTS = {
 	AccentNeon = {255, 140, 255, 8, 1},
