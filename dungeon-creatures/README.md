@@ -1,6 +1,6 @@
 # Dungeon Creatures (Roblox)
 
-Three 3-stage enemy sets, built only from normal Roblox Parts (Block / Ball / Cylinder).
+Four 3-stage enemy sets, built only from normal Roblox Parts (Block / Ball / Cylinder).
 
 ## Crystal Cave Golems (`CrystalGolems.server.lua`) — picture: `golems.png`
 | Stage | Name | HP | Height |
@@ -8,6 +8,13 @@ Three 3-stage enemy sets, built only from normal Roblox Parts (Block / Ball / Cy
 | 1 (weak) | Crystal Golem Weakling | 60 | 5.5 studs |
 | 2 (normal) | Crystal Golem | 300 | 10.2 studs |
 | 3 (boss) | Crystal Titan | 3500 | 19.2 studs |
+
+## Phantom Wraiths (`PhantomWraiths.server.lua`) — picture: `wraiths.png`
+| Stage | Name | HP | Height |
+|---|---|---|---|
+| 1 (weak) | Wisp | 45 | 6.4 studs |
+| 2 (normal) | Phantom Wraith | 260 | 10.8 studs |
+| 3 (boss) | Wraith King | 3300 | 23.8 studs (with scythe) |
 
 ## Magma Spiders (`MagmaSpiders.server.lua`) — picture: `spiders.png`
 | Stage | Name | HP | Height |
@@ -30,6 +37,7 @@ Three 3-stage enemy sets, built only from normal Roblox Parts (Block / Ball / Cy
 
 ## Change them
 - Golems: edit `golems.mjs`, run `node golems.mjs`, then `node render.cjs golems`.
+- Wraiths: edit `wraiths.mjs`, run `node wraiths.mjs`, then `node render.cjs wraiths`.
 - Spiders: edit `spiders.mjs`, run `node spiders.mjs`, then `node render.cjs spiders`.
 - Ghouls: edit `gen.mjs`, run `node gen.mjs`, then `node render.cjs`.
 Shared building code is in `lib.mjs`.

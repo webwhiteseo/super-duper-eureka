@@ -33,6 +33,13 @@ const SETS = {
     camera: [[11, 13, -68], [6, 7, 0]],
     info: {1: ['WEAKLING', 'Small / basic stone form'], 2: ['DUNGEON ENEMY', 'Larger / heavier armour'], 3: ['CRYSTAL TITAN BOSS', 'Massive / crystal heart']},
   },
+  wraiths: {
+    title: 'PHANTOM WRAITHS', json: 'wraiths.json',
+    css: {bg: '#0f0a1a', text: '#f1ecff', sub: '#a993e6', border: '#5b3fa8', card: '#120c20ee', accent: '#7dffd8', shade: '#07040ecc'},
+    bg: 0x130d22, floor: 0x161028, line: 0x46307e, sky: 0xc8b8ff, ground: 0x1a1230, rim: 0x6af0d0, glow: 0x3a2370,
+    camera: [[10, 12, -64], [9, 7, 0]], zoom: 0.75, bloom: 0.45, bloomThreshold: 0.75,
+    info: {1: ['WEAKLING', 'Small / drifting wisp'], 2: ['DUNGEON ENEMY', 'Larger / bone claws'], 3: ['WRAITH KING BOSS', 'Massive / scythe and soul orbs']},
+  },
   spiders: {
     title: 'MAGMA SPIDERS', json: 'spiders.json',
     css: {bg: '#160c0a', text: '#fff1e6', sub: '#e6a07a', border: '#a04a1f', card: '#1a0d09ee', accent: '#ff8a3c', shade: '#0a0504cc'},
@@ -80,6 +87,9 @@ const rim = new THREE.DirectionalLight(SET.rim, 2.0); rim.position.set(25, 20, 3
 const MAT = {
   Slate: {roughness: 0.85, metalness: 0.05},
   Basalt: {roughness: 0.9, metalness: 0.05},
+  Fabric: {roughness: 1, metalness: 0},
+  Metal: {roughness: 0.3, metalness: 0.8},
+  Wood: {roughness: 0.9, metalness: 0},
   SmoothPlastic: {roughness: 0.55, metalness: 0},
 };
 const edges = new THREE.LineBasicMaterial({color: 0x0c1118, transparent: true, opacity: 0.55});
@@ -111,8 +121,11 @@ for (const c of creatures) {
 const camera = new THREE.PerspectiveCamera(only ? 30 : 30, W / H, 0.1, 400);
 if (only) {
   const h = creatures[0].height;
-  camera.position.set(h * 0.9, h * 0.85, -h * 3.9);
+  const zoom = SET.zoom || 1;
+  camera.position.set(h * 0.9 * zoom, h * 0.85 * zoom, -h * 3.9 * zoom);
   camera.lookAt(0, h * 0.36, 0);
+  const dist = camera.position.length();
+  scene.fog.near = dist * 0.9; scene.fog.far = dist * 2.5;
   document.querySelector('h1').style.fontSize = '40px';
 } else {
   camera.position.set(...SET.camera[0]);
@@ -121,7 +134,7 @@ if (only) {
 
 const composer = new EffectComposer(renderer);
 composer.addPass(new RenderPass(scene, camera));
-composer.addPass(new UnrealBloomPass(new THREE.Vector2(W, H), 0.9, 0.55, 0.5));
+composer.addPass(new UnrealBloomPass(new THREE.Vector2(W, H), SET.bloom || 0.9, 0.55, SET.bloomThreshold || 0.5));
 composer.addPass(new OutputPass());
 composer.render();
 
