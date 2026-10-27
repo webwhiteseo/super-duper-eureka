@@ -1,0 +1,116 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Crystal Cave Golems</title>
+<style>
+  html,body{margin:0;overflow:hidden;background:#0b1422;font-family:"DejaVu Sans",Verdana,sans-serif}
+  canvas{display:block}
+  h1{position:absolute;left:58px;top:34px;margin:0;color:#e8f4ff;font-size:58px;letter-spacing:2px;font-weight:800}
+  .sub{position:absolute;left:60px;top:108px;color:#7fb6e6;font-size:21px;letter-spacing:1px}
+  .vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 60% 55%,transparent 45%,#060b14cc 100%)}
+  .card{position:absolute;bottom:38px;width:400px;transform:translateX(-50%);padding:16px 18px 18px;border:2px solid #2f6fae;border-radius:12px;background:#0a1626ee;color:#e8f4ff}
+  .card b{color:#5cc4ff;font-size:28px;margin-right:12px}
+  .card span{font-size:28px;font-weight:800;letter-spacing:1.5px}
+  .card p{margin:18px 0 0;color:#9fb3c8;font-size:17px;line-height:1.5}
+  .card i{font-style:normal;color:#5cc4ff}
+</style>
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script>
+</head><body>
+<div class="vignette"></div>
+<h1>CRYSTAL CAVE GOLEMS</h1>
+<div class="sub">ACTUAL PART GEOMETRY &nbsp;/&nbsp; ROBLOX STUDIO BUILDER</div>
+<script type="module">
+import * as THREE from 'three';
+import {EffectComposer} from 'three/addons/postprocessing/EffectComposer.js';
+import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
+import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
+import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
+
+const only = Number(new URLSearchParams(location.search).get('only')) || 0;
+const creatures = (await (await fetch('golems.json')).json()).filter(c => !only || c.stage === only);
+const W = innerWidth, H = innerHeight;
+const renderer = new THREE.WebGLRenderer({antialias: true});
+renderer.setSize(W, H);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+document.body.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0d1828);
+scene.fog = new THREE.Fog(0x0d1828, 50, 130);
+// glowing grid floor like a showcase stage
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.MeshBasicMaterial({color: 0x0f1c2f, fog: true}));
+floor.rotation.x = -Math.PI / 2; scene.add(floor);
+const shadowCatcher = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.ShadowMaterial({opacity: 0.5}));
+shadowCatcher.rotation.x = -Math.PI / 2; shadowCatcher.position.y = 0.01; shadowCatcher.receiveShadow = true; scene.add(shadowCatcher);
+const lineMat = new THREE.LineBasicMaterial({color: 0x2a5d8f, transparent: true, opacity: 0.8});
+for (let z = -60; z <= 20; z += 3) {
+  const g = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-200, 0.02, z), new THREE.Vector3(200, 0.02, z)]);
+  scene.add(new THREE.Line(g, lineMat));
+}
+
+scene.add(new THREE.HemisphereLight(0xa8d0ff, 0x1a2638, 2.2));
+const key = new THREE.DirectionalLight(0xeef5ff, 3.2);
+key.position.set(-25, 45, -35); key.castShadow = true;
+key.shadow.mapSize.set(4096, 4096);
+Object.assign(key.shadow.camera, {left: -40, right: 40, top: 40, bottom: -10, far: 140});
+scene.add(key);
+const rim = new THREE.DirectionalLight(0x4aa8ff, 2.0); rim.position.set(25, 20, 35); scene.add(rim);
+
+const MAT = {
+  Slate: {roughness: 0.85, metalness: 0.05},
+  SmoothPlastic: {roughness: 0.55, metalness: 0},
+};
+const edges = new THREE.LineBasicMaterial({color: 0x0c1118, transparent: true, opacity: 0.55});
+for (const c of creatures) {
+  const off = only ? [0, 0, 0] : c.offset;
+  for (const p of c.parts) {
+    let geo;
+    if (p.shape === 'Ball') geo = new THREE.SphereGeometry(p.size[0] / 2, 32, 20);
+    else if (p.shape === 'Cylinder') { geo = new THREE.CylinderGeometry(p.size[1] / 2, p.size[1] / 2, p.size[0], 32); geo.rotateZ(Math.PI / 2); }
+    else geo = new THREE.BoxGeometry(...p.size);
+    const col = new THREE.Color().setRGB(...p.color.map(v => v / 255), THREE.SRGBColorSpace);
+    const neon = p.mat === 'Neon';
+    const mat = neon ? new THREE.MeshBasicMaterial({color: col.clone().multiplyScalar(1.25)})
+                     : new THREE.MeshStandardMaterial({color: col, ...(MAT[p.mat] || MAT.SmoothPlastic)});
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set(p.pos[0] + off[0], p.pos[1] + off[1], p.pos[2] + off[2]);
+    m.rotation.set(...p.rot.map(THREE.MathUtils.degToRad), 'YXZ');
+    m.castShadow = !neon; m.receiveShadow = true;
+    if (!neon) m.add(new THREE.LineSegments(new THREE.EdgesGeometry(geo), edges));
+    scene.add(m);
+    if (p.light) { const l = new THREE.PointLight(col, 25, p.light * 2, 1.5); l.position.copy(m.position); l.position.z -= 1.5; scene.add(l); }
+  }
+  // soft blue glow on the floor under each golem
+  const glow = new THREE.Mesh(new THREE.CircleGeometry(c.height * 0.45, 48), new THREE.MeshBasicMaterial({color: 0x1d4f8a, transparent: true, opacity: 0.35}));
+  glow.rotation.x = -Math.PI / 2; glow.position.set(off[0], 0.03, off[2]); scene.add(glow);
+}
+
+const camera = new THREE.PerspectiveCamera(only ? 30 : 30, W / H, 0.1, 400);
+if (only) {
+  const h = creatures[0].height;
+  camera.position.set(h * 0.9, h * 0.85, -h * 3.9);
+  camera.lookAt(0, h * 0.36, 0);
+  document.querySelector('h1').style.fontSize = '40px';
+} else {
+  camera.position.set(11, 13, -68);
+  camera.lookAt(6, 7, 0);
+}
+
+const composer = new EffectComposer(renderer);
+composer.addPass(new RenderPass(scene, camera));
+composer.addPass(new UnrealBloomPass(new THREE.Vector2(W, H), 0.9, 0.55, 0.5));
+composer.addPass(new OutputPass());
+composer.render();
+
+const info = {1: ['WEAKLING', 'Small / basic stone form'], 2: ['DUNGEON ENEMY', 'Larger / heavier armour'], 3: ['CRYSTAL TITAN BOSS', 'Massive / crystal heart']};
+for (const c of creatures) {
+  const off = only ? [0, 0, 0] : c.offset;
+  const v = new THREE.Vector3(off[0], 0, 0).project(camera);
+  const d = document.createElement('div'); d.className = 'card';
+  d.innerHTML = `<b>0${c.stage}</b><span>${info[c.stage][0]}</span><p>${info[c.stage][1]}<br><i>${c.health} HP</i> · ${c.height} studs · ${c.parts.length} parts</p>`;
+  d.style.left = only ? '50%' : ((v.x + 1) / 2 * W) + 'px';
+  document.body.appendChild(d);
+}
+window.DONE = true;
+</script>
+</body></html>
