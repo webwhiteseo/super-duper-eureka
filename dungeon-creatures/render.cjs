@@ -1,5 +1,6 @@
 // node render.cjs         -> preview.png (all 3 ghouls) + stage1-3.png close-ups
 // node render.cjs golems  -> golems.png (all 3 golems) + golem1-3.png close-ups
+// node render.cjs spiders -> spiders.png (all 3 spiders) + spider1-3.png close-ups
 const {chromium} = require('playwright');
 const http = require('http'), fs = require('fs'), path = require('path');
 const srv = http.createServer((q, res) => {
@@ -12,10 +13,10 @@ const srv = http.createServer((q, res) => {
 }).listen(8767);
 (async () => {
   const b = await chromium.launch({args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader']});
-  const golems = process.argv[2] === 'golems';
-  const page = golems ? 'golems.html' : 'preview.html';
-  const [all, one] = golems ? ['golems.png', 'golem'] : ['preview.png', 'stage'];
-  const shots = [[all, '', 2000, 1180], ...[1, 2, 3].map((n) => [`${one}${n}.png`, `?only=${n}`, 1080, 1350])];
+  const set = process.argv[2];
+  const page = set ? `showcase.html?set=${set}` : 'preview.html?';
+  const [all, one] = set ? [`${set}.png`, set.replace(/s$/, '')] : ['preview.png', 'stage'];
+  const shots = [[all, '', 2000, 1180], ...[1, 2, 3].map((n) => [`${one}${n}.png`, `&only=${n}`, 1080, 1350])];
   for (const [file, q, w, h] of shots) {
     const p = await b.newPage({viewport: {width: w, height: h}});
     p.on('pageerror', e => console.log('ERR', e.message));

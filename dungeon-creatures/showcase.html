@@ -1,21 +1,21 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><title>Crystal Cave Golems</title>
+<html><head><meta charset="utf-8"><title>Monster Showcase</title>
 <style>
-  html,body{margin:0;overflow:hidden;background:#0b1422;font-family:"DejaVu Sans",Verdana,sans-serif}
+  html,body{margin:0;overflow:hidden;background:var(--bg);font-family:"DejaVu Sans",Verdana,sans-serif}
   canvas{display:block}
-  h1{position:absolute;left:58px;top:34px;margin:0;color:#e8f4ff;font-size:58px;letter-spacing:2px;font-weight:800}
-  .sub{position:absolute;left:60px;top:108px;color:#7fb6e6;font-size:21px;letter-spacing:1px}
-  .vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 60% 55%,transparent 45%,#060b14cc 100%)}
-  .card{position:absolute;bottom:38px;width:400px;transform:translateX(-50%);padding:16px 18px 18px;border:2px solid #2f6fae;border-radius:12px;background:#0a1626ee;color:#e8f4ff}
-  .card b{color:#5cc4ff;font-size:28px;margin-right:12px}
+  h1{position:absolute;left:58px;top:34px;margin:0;color:var(--text);font-size:58px;letter-spacing:2px;font-weight:800}
+  .sub{position:absolute;left:60px;top:108px;color:var(--sub);font-size:21px;letter-spacing:1px}
+  .vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 60% 55%,transparent 45%,var(--shade) 100%)}
+  .card{position:absolute;bottom:38px;width:400px;transform:translateX(-50%);padding:16px 18px 18px;border:2px solid var(--border);border-radius:12px;background:var(--card);color:var(--text)}
+  .card b{color:var(--accent);font-size:28px;margin-right:12px}
   .card span{font-size:28px;font-weight:800;letter-spacing:1.5px}
   .card p{margin:18px 0 0;color:#9fb3c8;font-size:17px;line-height:1.5}
-  .card i{font-style:normal;color:#5cc4ff}
+  .card i{font-style:normal;color:var(--accent)}
 </style>
 <script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script>
 </head><body>
 <div class="vignette"></div>
-<h1>CRYSTAL CAVE GOLEMS</h1>
+<h1></h1>
 <div class="sub">ACTUAL PART GEOMETRY &nbsp;/&nbsp; ROBLOX STUDIO BUILDER</div>
 <script type="module">
 import * as THREE from 'three';
@@ -24,8 +24,29 @@ import {RenderPass} from 'three/addons/postprocessing/RenderPass.js';
 import {UnrealBloomPass} from 'three/addons/postprocessing/UnrealBloomPass.js';
 import {OutputPass} from 'three/addons/postprocessing/OutputPass.js';
 
-const only = Number(new URLSearchParams(location.search).get('only')) || 0;
-const creatures = (await (await fetch('golems.json')).json()).filter(c => !only || c.stage === only);
+// ?set=golems|spiders picks the monster set, ?only=2 renders just one close up
+const SETS = {
+  golems: {
+    title: 'CRYSTAL CAVE GOLEMS', json: 'golems.json',
+    css: {bg: '#0b1422', text: '#e8f4ff', sub: '#7fb6e6', border: '#2f6fae', card: '#0a1626ee', accent: '#5cc4ff', shade: '#060b14cc'},
+    bg: 0x0d1828, floor: 0x0f1c2f, line: 0x2a5d8f, sky: 0xa8d0ff, ground: 0x1a2638, rim: 0x4aa8ff, glow: 0x1d4f8a,
+    camera: [[11, 13, -68], [6, 7, 0]],
+    info: {1: ['WEAKLING', 'Small / basic stone form'], 2: ['DUNGEON ENEMY', 'Larger / heavier armour'], 3: ['CRYSTAL TITAN BOSS', 'Massive / crystal heart']},
+  },
+  spiders: {
+    title: 'MAGMA SPIDERS', json: 'spiders.json',
+    css: {bg: '#160c0a', text: '#fff1e6', sub: '#e6a07a', border: '#a04a1f', card: '#1a0d09ee', accent: '#ff8a3c', shade: '#0a0504cc'},
+    bg: 0x1c0f0c, floor: 0x211310, line: 0x7a3418, sky: 0xffc8a8, ground: 0x2a1610, rim: 0xff6a20, glow: 0x7a2a0c,
+    camera: [[13, 14, -68], [8, 4.5, 0]],
+    info: {1: ['WEAKLING', 'Small / ember spiderling'], 2: ['DUNGEON ENEMY', 'Larger / lava-cracked shell'], 3: ['BROOD QUEEN BOSS', 'Massive / molten egg core']},
+  },
+};
+const params = new URLSearchParams(location.search);
+const SET = SETS[params.get('set') || 'golems'];
+const only = Number(params.get('only')) || 0;
+for (const [k, v] of Object.entries(SET.css)) document.documentElement.style.setProperty('--' + k, v);
+document.querySelector('h1').textContent = SET.title;
+const creatures = (await (await fetch(SET.json)).json()).filter(c => !only || c.stage === only);
 const W = innerWidth, H = innerHeight;
 const renderer = new THREE.WebGLRenderer({antialias: true});
 renderer.setSize(W, H);
@@ -35,29 +56,30 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 document.body.prepend(renderer.domElement);
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0d1828);
-scene.fog = new THREE.Fog(0x0d1828, 50, 130);
+scene.background = new THREE.Color(SET.bg);
+scene.fog = new THREE.Fog(SET.bg, 50, 130);
 // glowing grid floor like a showcase stage
-const floor = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.MeshBasicMaterial({color: 0x0f1c2f, fog: true}));
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.MeshBasicMaterial({color: SET.floor, fog: true}));
 floor.rotation.x = -Math.PI / 2; scene.add(floor);
 const shadowCatcher = new THREE.Mesh(new THREE.PlaneGeometry(400, 400), new THREE.ShadowMaterial({opacity: 0.5}));
 shadowCatcher.rotation.x = -Math.PI / 2; shadowCatcher.position.y = 0.01; shadowCatcher.receiveShadow = true; scene.add(shadowCatcher);
-const lineMat = new THREE.LineBasicMaterial({color: 0x2a5d8f, transparent: true, opacity: 0.8});
+const lineMat = new THREE.LineBasicMaterial({color: SET.line, transparent: true, opacity: 0.8});
 for (let z = -60; z <= 20; z += 3) {
   const g = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-200, 0.02, z), new THREE.Vector3(200, 0.02, z)]);
   scene.add(new THREE.Line(g, lineMat));
 }
 
-scene.add(new THREE.HemisphereLight(0xa8d0ff, 0x1a2638, 2.2));
+scene.add(new THREE.HemisphereLight(SET.sky, SET.ground, 2.2));
 const key = new THREE.DirectionalLight(0xeef5ff, 3.2);
 key.position.set(-25, 45, -35); key.castShadow = true;
 key.shadow.mapSize.set(4096, 4096);
 Object.assign(key.shadow.camera, {left: -40, right: 40, top: 40, bottom: -10, far: 140});
 scene.add(key);
-const rim = new THREE.DirectionalLight(0x4aa8ff, 2.0); rim.position.set(25, 20, 35); scene.add(rim);
+const rim = new THREE.DirectionalLight(SET.rim, 2.0); rim.position.set(25, 20, 35); scene.add(rim);
 
 const MAT = {
   Slate: {roughness: 0.85, metalness: 0.05},
+  Basalt: {roughness: 0.9, metalness: 0.05},
   SmoothPlastic: {roughness: 0.55, metalness: 0},
 };
 const edges = new THREE.LineBasicMaterial({color: 0x0c1118, transparent: true, opacity: 0.55});
@@ -81,7 +103,7 @@ for (const c of creatures) {
     if (p.light) { const l = new THREE.PointLight(col, 25, p.light * 2, 1.5); l.position.copy(m.position); l.position.z -= 1.5; scene.add(l); }
   }
   // soft blue glow on the floor under each golem
-  const glow = new THREE.Mesh(new THREE.CircleGeometry(c.height * 0.45, 48), new THREE.MeshBasicMaterial({color: 0x1d4f8a, transparent: true, opacity: 0.35}));
+  const glow = new THREE.Mesh(new THREE.CircleGeometry(c.height * 0.45, 48), new THREE.MeshBasicMaterial({color: SET.glow, transparent: true, opacity: 0.35}));
   glow.rotation.x = -Math.PI / 2; glow.position.set(off[0], 0.03, off[2]); scene.add(glow);
 }
 
@@ -92,8 +114,8 @@ if (only) {
   camera.lookAt(0, h * 0.36, 0);
   document.querySelector('h1').style.fontSize = '40px';
 } else {
-  camera.position.set(11, 13, -68);
-  camera.lookAt(6, 7, 0);
+  camera.position.set(...SET.camera[0]);
+  camera.lookAt(...SET.camera[1]);
 }
 
 const composer = new EffectComposer(renderer);
@@ -102,7 +124,7 @@ composer.addPass(new UnrealBloomPass(new THREE.Vector2(W, H), 0.9, 0.55, 0.5));
 composer.addPass(new OutputPass());
 composer.render();
 
-const info = {1: ['WEAKLING', 'Small / basic stone form'], 2: ['DUNGEON ENEMY', 'Larger / heavier armour'], 3: ['CRYSTAL TITAN BOSS', 'Massive / crystal heart']};
+const info = SET.info;
 for (const c of creatures) {
   const off = only ? [0, 0, 0] : c.offset;
   const v = new THREE.Vector3(off[0], 0, 0).project(camera);
