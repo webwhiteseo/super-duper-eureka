@@ -74,7 +74,7 @@ export function exportCreatures(creatures, { title, source, jsonFile, luaFile })
 -- HOW TO USE:
 --   Option A (keep them in your place): View > Command Bar, paste this whole file, press Enter.
 --   Option B (spawn on Play): put it in a Script inside ServerScriptService.
--- Built only from normal Parts (Block / Ball / Cylinder), welded to an anchored HumanoidRootPart.
+-- Built only from normal Parts (Block / Ball / Cylinder, plus Sphere SpecialMesh for ovals), welded to an anchored HumanoidRootPart.
 -- Unanchor HumanoidRootPart when you add AI/movement.
 
 local CREATURES = {
@@ -112,7 +112,8 @@ local function buildCreature(def)
 		local name, shape, size, pos, rot, color, material, lightRange = table.unpack(p)
 		local part = Instance.new("Part")
 		part.Name = name
-		part.Shape = Enum.PartType[shape]
+		-- "Ellipsoid" = a block with a sphere SpecialMesh, which stretches to fill the part (smooth oval)
+		part.Shape = shape == "Ellipsoid" and Enum.PartType.Block or Enum.PartType[shape]
 		part.Size = size
 		part.CFrame = CFrame.new(def.offset + pos) * CFrame.fromOrientation(math.rad(rot.X), math.rad(rot.Y), math.rad(rot.Z))
 		part.Color = color
@@ -123,6 +124,12 @@ local function buildCreature(def)
 		part.Massless = true
 		part.CastShadow = material ~= "Neon"
 		part.Parent = model
+
+		if shape == "Ellipsoid" then
+			local mesh = Instance.new("SpecialMesh")
+			mesh.MeshType = Enum.MeshType.Sphere
+			mesh.Parent = part
+		end
 
 		local weld = Instance.new("WeldConstraint")
 		weld.Part0 = root
